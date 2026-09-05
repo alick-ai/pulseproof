@@ -38,6 +38,7 @@ Dir.mktmpdir("pulseproof-submission-rehearsal-") do |directory|
 
   source_modules = File.join(ROOT, "web", "node_modules")
   abort "rehearsal requires installed frontend dependencies at web/node_modules" unless File.directory?(source_modules)
+  File.open(File.join(worktree, ".git", "info", "exclude"), "a") { |file| file.puts("/web/node_modules") }
   File.symlink(source_modules, File.join(worktree, "web", "node_modules"))
   puts "Rehearsal dependencies: PASS (read-only link to the current installed dependency tree)"
 
