@@ -36,7 +36,11 @@ Dir.mktmpdir("pulseproof-submission-rehearsal-") do |directory|
   capture!("git", "config", "user.name", "PulseProof rehearsal", chdir: worktree, label: "Rehearsal identity")
   capture!("git", "config", "user.email", "rehearsal@example.invalid", chdir: worktree, label: "Rehearsal email")
 
-  FileUtils.cp(File.join(worktree, "data/operations_queue_10.json"), File.join(worktree, "operations_queue_test.json"))
+  queue_path = File.join(worktree, "operations_queue_test.json")
+  FileUtils.cp(File.join(worktree, "data/operations_queue_10.json"), queue_path)
+  queue = JSON.parse(File.read(queue_path, encoding: "UTF-8"))
+  queue.first["operation_id"] = "rehearsal_#{queue.first.fetch('operation_id')}"
+  File.write(queue_path, "#{JSON.pretty_generate(queue)}\n")
   submit = capture!(RbConfig.ruby, "-S", "rake", "submit", chdir: worktree, label: "Stopcode generation gate")
 
   capture!("git", "add", "routing_decisions_test.json", "routing_report_test.json", chdir: worktree, label: "Stage final artifacts")
@@ -60,7 +64,7 @@ Dir.mktmpdir("pulseproof-submission-rehearsal-") do |directory|
     "submission_git_seconds" => verify.fetch("seconds"),
     "remote_hash_matches" => true,
     "temporary_directory_removed_on_exit" => true,
-    "scope" => "Public sample copied only inside an isolated temporary clone; no organizer queue or external remote used."
+    "scope" => "A synthetic derivative of the public sample exists only inside an isolated temporary clone; no organizer queue or external remote used."
   }
   puts JSON.pretty_generate(summary)
 end
