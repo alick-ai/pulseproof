@@ -36,6 +36,11 @@ Dir.mktmpdir("pulseproof-submission-rehearsal-") do |directory|
   capture!("git", "config", "user.name", "PulseProof rehearsal", chdir: worktree, label: "Rehearsal identity")
   capture!("git", "config", "user.email", "rehearsal@example.invalid", chdir: worktree, label: "Rehearsal email")
 
+  source_modules = File.join(ROOT, "web", "node_modules")
+  abort "rehearsal requires installed frontend dependencies at web/node_modules" unless File.directory?(source_modules)
+  File.symlink(source_modules, File.join(worktree, "web", "node_modules"))
+  puts "Rehearsal dependencies: PASS (read-only link to the current installed dependency tree)"
+
   preflight = capture!(RbConfig.ruby, "-S", "rake", "arm_stopcode", chdir: worktree, label: "Full pre-stopcode release gate")
 
   queue_path = File.join(worktree, "operations_queue_test.json")
