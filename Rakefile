@@ -10,6 +10,16 @@ def selected_queue
   PulseProof::InputLocator.queue(root: ROOT)
 end
 
+def verify_submission_layout!
+  branch = `git branch --show-current`.strip
+  actual = branch.empty? ? "no branch" : branch
+  abort "submission layout failed: expected Git branch main, got #{actual}" unless branch == "main"
+  required = %w[routing_decisions_test.json routing_report_test.json]
+  missing = required.reject { |path| File.file?(File.join(ROOT, path)) }
+  abort "submission layout failed: missing #{missing.join(', ')}" if missing.any?
+  puts "LOCAL_LAYOUT_PASS: #{required.join(' + ')} in repository root; commit and publication NOT verified"
+end
+
 Rake::TestTask.new do |task|
   task.libs << "lib"
   task.pattern = "test/**/*_test.rb"
@@ -20,6 +30,11 @@ task default: :test
 desc "Generate artifacts from the currently selected queue"
 task :route do
   sh "bin/pulseproof run"
+end
+
+desc "Generate compact stopcode artifacts and verify their persisted JSON roundtrip"
+task :route_stopcode do
+  sh "bin/pulseproof run --compact-output --verify-write"
 end
 
 desc "Generate browser replay data"
@@ -60,13 +75,7 @@ end
 
 desc "Verify LOCAL artifact layout on main (not commit or publication)"
 task submission_layout: :route do
-  branch = `git branch --show-current`.strip
-  actual = branch.empty? ? "no branch" : branch
-  abort "submission layout failed: expected Git branch main, got #{actual}" unless branch == "main"
-  required = %w[routing_decisions_test.json routing_report_test.json]
-  missing = required.reject { |path| File.file?(File.join(ROOT, path)) }
-  abort "submission layout failed: missing #{missing.join(', ')}" if missing.any?
-  puts "LOCAL_LAYOUT_PASS: #{required.join(' + ')} in repository root; commit and publication NOT verified"
+  verify_submission_layout!
 end
 
 desc "Run executable public requirements evidence and save an isolated report"
@@ -86,6 +95,82 @@ task :require_stopcode do
     abort "stopcode gate stopped: operations_queue_test.json is not present; public sample outputs must not be submitted"
   end
   puts "Stopcode queue selected: #{path}"
+end
+
+desc "Fail if an organizer-named stopcode queue is already present"
+task :ensure_no_stopcode do
+  paths = PulseProof::InputLocator::QUEUE_CANDIDATES.first(2).map { |path| File.join(ROOT, path) }
+  present = paths.select { |path| File.exist?(path) }
+  abort "preflight must run before stopcode input is present: #{present.join(', ')}" if present.any?
+end
+
+desc "Check that the preflight candidate is clean main and matches remote origin/main"
+task :verify_stopcode_candidate do
+  begin
+    candidate = PulseProof::StopcodePreflight.new(root: ROOT).candidate!
+    puts "STOPCODE_PREFLIGHT_CANDIDATE: #{candidate.fetch('commit')} is clean and present at remote origin/main"
+  rescue PulseProof::InputError => error
+    abort error.message
+  end
+end
+
+desc "Run the full release gate and bind it to the exact clean published main commit"
+task arm_stopcode: [:ensure_no_stopcode, :verify_stopcode_candidate, :release] do
+  begin
+    receipt = PulseProof::StopcodePreflight.new(root: ROOT).write!
+    puts "#{receipt.fetch('status')}: #{receipt.fetch('commit')}"
+    puts "When the organizer queue arrives, place it unchanged in the repository root and run: rake stopcode"
+  rescue PulseProof::InputError => error
+    abort error.message
+  end
+end
+
+desc "Verify that source, configuration and tests still match the armed commit"
+task :verify_stopcode_preflight do
+  begin
+    receipt = PulseProof::StopcodePreflight.new(root: ROOT).verify!
+    puts "STOPCODE_PREFLIGHT_VERIFIED: #{receipt.fetch('commit')}"
+  rescue PulseProof::InputError => error
+    abort error.message
+  end
+end
+
+desc "Verify persisted stopcode coverage and report binding after the generator's full strict validation"
+task validate_stopcode: :route_stopcode do
+  queue = PulseProof::InputLoader.validate_queue!(PulseProof::InputLoader.json(selected_queue))
+  decisions = PulseProof::InputLoader.json(File.join(ROOT, "routing_decisions_test.json"))
+  report = PulseProof::InputLoader.json(File.join(ROOT, "routing_report_test.json"))
+  queue_ids = queue.map { |operation| operation.fetch("operation_id") }
+  decision_ids = decisions.map { |decision| decision.fetch("operation_id") }
+  abort "persisted stopcode validation failed: decision IDs are not unique" unless decision_ids.uniq.length == decision_ids.length
+  abort "persisted stopcode validation failed: queue coverage differs" unless queue_ids.sort == decision_ids.sort
+  abort "persisted stopcode validation failed: report total differs" unless report["total_operations"] == decisions.length
+  abort "persisted stopcode validation failed: decisions hash differs" unless report.dig("audit", "decisions_hash") == PulseProof::Canonical.digest(decisions)
+  puts "persisted stopcode validation passed: full strict validation + exact write roundtrip + #{decisions.length} queue IDs"
+end
+
+desc "Verify that the organizer queue's private values are absent from required outputs"
+task pii_submission: :route_stopcode do
+  queue = PulseProof::InputLoader.json(selected_queue)
+  phones = queue.map { |operation| operation.dig("payout_requisite", "sbp", "phone") }.compact
+  artifacts = %w[routing_decisions_test.json routing_report_test.json]
+  leaks = artifacts.flat_map do |path|
+    text = File.read(path)
+    phones.select { |phone| text.include?(phone) }.map { |phone| [path, phone] }
+  end
+  abort "PII submission gate failed: #{leaks.map(&:first).uniq.join(', ')}" if leaks.any?
+  puts "PII submission gate passed: #{phones.length} sensitive values absent from #{artifacts.length} required artifacts"
+end
+
+desc "Verify stopcode artifact layout without regenerating the queue"
+task submission_layout_stopcode: :route_stopcode do
+  verify_submission_layout!
+end
+
+desc "Fast stopcode path after rake arm_stopcode: route and run queue-dependent gates only"
+task stopcode: [:require_stopcode, :verify_stopcode_preflight, :validate_stopcode, :pii_submission, :ruby_majority, :submission_layout_stopcode] do
+  puts "PulseProof stopcode gate: FAST_STOPCODE_GENERATED_LOCALLY — source matches the fully tested preflight commit"
+  puts "Review and commit both JSON files to main, push, then run rake submission_git and compare the remote commit hash"
 end
 
 desc "Generate organizer-queue artifacts locally: tests, validation and privacy (commit/publish separately)"

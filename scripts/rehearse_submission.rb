@@ -36,12 +36,14 @@ Dir.mktmpdir("pulseproof-submission-rehearsal-") do |directory|
   capture!("git", "config", "user.name", "PulseProof rehearsal", chdir: worktree, label: "Rehearsal identity")
   capture!("git", "config", "user.email", "rehearsal@example.invalid", chdir: worktree, label: "Rehearsal email")
 
+  preflight = capture!(RbConfig.ruby, "-S", "rake", "arm_stopcode", chdir: worktree, label: "Full pre-stopcode release gate")
+
   queue_path = File.join(worktree, "operations_queue_test.json")
   FileUtils.cp(File.join(worktree, "data/operations_queue_10.json"), queue_path)
   queue = JSON.parse(File.read(queue_path, encoding: "UTF-8"))
   queue.first["operation_id"] = "rehearsal_#{queue.first.fetch('operation_id')}"
   File.write(queue_path, "#{JSON.pretty_generate(queue)}\n")
-  submit = capture!(RbConfig.ruby, "-S", "rake", "submit", chdir: worktree, label: "Stopcode generation gate")
+  stopcode = capture!(RbConfig.ruby, "-S", "rake", "stopcode", chdir: worktree, label: "Fast stopcode generation gate")
 
   capture!("git", "add", "routing_decisions_test.json", "routing_report_test.json", chdir: worktree, label: "Stage final artifacts")
   capture!("git", "commit", "-m", "Rehearse stopcode artifacts", chdir: worktree, label: "Commit final artifacts")
@@ -59,7 +61,8 @@ Dir.mktmpdir("pulseproof-submission-rehearsal-") do |directory|
     "status" => "ISOLATED_SUBMISSION_REHEARSAL_PASS",
     "source_commit" => capture!("git", "rev-parse", "HEAD^", chdir: worktree, label: "Source commit hash").fetch("stdout").strip,
     "rehearsal_commit" => local_sha,
-    "submit_seconds" => submit.fetch("seconds"),
+    "preflight_seconds" => preflight.fetch("seconds"),
+    "stopcode_seconds" => stopcode.fetch("seconds"),
     "push_seconds" => push.fetch("seconds"),
     "submission_git_seconds" => verify.fetch("seconds"),
     "remote_hash_matches" => true,

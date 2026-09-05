@@ -23,24 +23,38 @@ bin/pulseproof explain op_101 --decisions outputs/planner-decisions.json --repor
 
 **The default submission policy remains `config/balanced.json`, not the experimental planner.** The public validator yields 28/29 on the planner's probabilistic run when op_104 legally falls back after quickpay rejects. The separately labeled no-rejection `approve` simulation yields 29/29. That compatibility check is not an outage-quality result, and the hidden validator's behavior is unknown. Experimental reports stay in separate paths.
 
+Before the organizer queue arrives, commit and push the final source on `main`, make sure the worktree is clean, then run the full gate once:
+
+```bash
+rake arm_stopcode
+```
+
+This writes an ignored local receipt bound to the exact `main` commit, its tree, the local `origin/main` tracking ref and the current Ruby runtime. At preflight time it also reads the real remote `origin/main` and requires the same commit. It succeeds only after the complete tests, validators, evidence suite, privacy checks and frontend build pass. It does not claim that the remote server remains reachable or unchanged later; verify the final publication separately.
+
 Put the file issued by the organizers in the repository root with its original name:
 
 ```text
 operations_queue_test.json
 ```
 
-Then run:
+Then use the queue-dependent fast path:
+
+```bash
+rake stopcode
+```
+
+The fast gate verifies that code, configuration, tests, commit and Ruby version still match the fully tested receipt. Only the ignored organizer queue and the two generated artifacts may differ. It then routes every operation, strictly validates coverage and hard limits, checks private data and file layout, and writes the required files in the repository root (each file uses atomic replacement; the pair is not one filesystem transaction):
+
+- `routing_decisions_test.json`
+- `routing_report_test.json`
+
+If the receipt is missing or anything in the source tree changed, `rake stopcode` stops. Run the conservative full path instead (or remove the organizer queue, commit/push the intended source, and arm it again):
 
 ```bash
 rake submit
 ```
 
-The stopcode gate automatically prefers that hidden queue over the public sample, runs the Ruby tests, routes every operation, strictly validates coverage and hard limits, and writes the required files in the repository root (each file uses atomic replacement; the pair is not one filesystem transaction):
-
-- `routing_decisions_test.json`
-- `routing_report_test.json`
-
-For a fast run without the full test gate:
+For a direct run without either Rake safety gate:
 
 ```bash
 bin/pulseproof submit
@@ -48,7 +62,7 @@ bin/pulseproof submit
 
 The command prints `[STOPCODE TEST]` beside the selected queue. Both submission commands block the normal public-sample path when a file named `operations_queue_test.json` is missing. The filename does not establish authenticity: use the actual file issued by the organizers, not a renamed sample. Use `bin/pulseproof run` while developing against the public sample.
 
-`rake submit` finishes with `GENERATED_LOCALLY`, not a delivery-ready claim. Review and commit the code and both JSON files on `main`, then run:
+Both Rake paths finish with a local-generation status, not a delivery-ready claim. Review and commit the code and both JSON files on `main`, then run:
 
 ```bash
 rake submission_git
@@ -62,7 +76,7 @@ Before stopcode, rehearse the exact generate → commit → push → Git-check p
 rake rehearse_submission
 ```
 
-The rehearsal refuses a dirty source tree or a real root stopcode file, creates a disposable clone and disposable local bare remote, derives a synthetic queue from the public sample only inside that clone, runs the real `rake submit`, commits and pushes the two changed output artifacts there, verifies `rake submission_git`, compares local and remote commit hashes, and removes the clone. The ignored input queue remains local to the disposable clone. This proves the mechanics of the path, not the unknown organizer queue or external GitHub availability.
+The rehearsal refuses a dirty source tree or a real root stopcode file, creates a disposable clone and disposable local bare remote, runs `rake arm_stopcode`, derives a synthetic queue from the public sample only inside that clone, times the real `rake stopcode`, commits and pushes the two changed output artifacts there, verifies `rake submission_git`, compares local and remote commit hashes, and removes the clone. The ignored input queue and receipt remain local to the disposable clone. This proves the mechanics and measures the queue-time critical path, not the unknown organizer queue or external GitHub availability.
 
 Inspect any decision without opening the optional dashboard:
 
@@ -143,7 +157,7 @@ rake release
 
 The gate runs the Ruby test suite, generates both submission files, checks them with the strict validator and the official public validator, scans outputs for all sensitive queue values, verifies the Ruby-majority threshold, executes the 31-case requirements evidence, regenerates the demo trace, lints the interface and creates a production build.
 
-Last verified full gate: **188 tests, 6306 assertions, no failures; executable requirements evidence 31/31; official public balanced validation 29/29; authored Ruby share 74.4%; privacy, lint and production build passed.** The complete gate passed in the normal local environment; the locale regression suite inside it also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
+Last verified test suite: **196 tests, 6334 assertions, no failures.** The complete release gate is rerun after every delivery change; its additional checks cover executable requirements evidence 31/31, official public balanced validation 29/29, authored Ruby share 75.0%, privacy, lint and production build. The locale regression suite also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
 
 The normal suite also starts the CLI tests in fresh subprocesses under unset, C, POSIX and UTF-8 locales. UTF-8 file/pipe decoding is explicit in those tests; `Encoding.default_external` is not globally overridden. Reproduce the strict locale check with:
 
