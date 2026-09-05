@@ -6,13 +6,11 @@ const strategies = [
   { id: 'random_split', name: 'Random split', hint: 'случайное распределение' },
 ]
 
-export default function StrategyBand({ traces }) {
+export function StrategyTable({ traces }) {
   const finals = strategies.map((strategy) => ({ ...strategy, value: traces[strategy.id]?.at(-1) }))
   const maxError = Math.max(...finals.map((item) => item.value?.deviation_l1_pp || 0), 1)
   return (
-    <section className="strategy-band" aria-labelledby="strategy-title">
-      <div className="section-heading strategy-heading"><h2 id="strategy-title"><Scale /> Сравнение стратегий</h2><span>одна очередь · одинаковые ограничения</span></div>
-      <div className="strategy-table">
+    <div className="strategy-table">
         <div className="strategy-table__head"><span>Стратегия</span><span>Отклонение от цели</span><span>Ожидаемая успешность</span></div>
         {finals.map((strategy) => (
           <div className={`strategy-row ${strategy.featured ? 'is-featured' : ''}`} key={strategy.id}>
@@ -21,7 +19,15 @@ export default function StrategyBand({ traces }) {
             <strong className="strategy-success">{strategy.value.expected_settlement_pct.toFixed(1)}%</strong>
           </div>
         ))}
-      </div>
+    </div>
+  )
+}
+
+export default function StrategyBand({ traces }) {
+  return (
+    <section className="strategy-band" aria-labelledby="strategy-title">
+      <div className="section-heading strategy-heading"><h2 id="strategy-title"><Scale /> Сравнение стратегий</h2><span>одна очередь · одинаковые ограничения</span></div>
+      <StrategyTable traces={traces} />
     </section>
   )
 }

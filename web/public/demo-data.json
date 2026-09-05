@@ -31281,6 +31281,776 @@
       }
     ]
   },
+  "evidence": {
+    "suite": "public_requirements_evidence",
+    "source": "public sample and isolated counterfactual snapshots",
+    "scope": "Executable evidence for stated rules; not a claim about unknown organizer inputs or real bank connectivity.",
+    "summary": {
+      "passed": 31,
+      "total": 31,
+      "all_passed": true,
+      "groups": {
+        "hard": {
+          "title": "Жёсткие ограничения",
+          "passed": 14,
+          "total": 14
+        },
+        "soft": {
+          "title": "Причинное влияние факторов",
+          "passed": 8,
+          "total": 8
+        },
+        "runtime": {
+          "title": "Потоковое исполнение",
+          "passed": 7,
+          "total": 7
+        },
+        "challenge": {
+          "title": "Обратная проверка решения",
+          "passed": 2,
+          "total": 2
+        }
+      }
+    },
+    "cases": [
+      {
+        "id": "hard_amount_boundaries",
+        "group": "hard",
+        "title": "Границы суммы включительны",
+        "expected": "eligible at min and max",
+        "observed": {
+          "minimum": "eligible",
+          "maximum": "eligible"
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_inactive",
+        "group": "hard",
+        "title": "Отключённый провайдер",
+        "expected": "provider_inactive",
+        "observed": {
+          "reason": "provider_inactive",
+          "facts": {
+            "amount": 15000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_traffic_disabled",
+        "group": "hard",
+        "title": "Нулевая доля отключает внешний маршрут",
+        "expected": "traffic_disabled",
+        "observed": {
+          "reason": "traffic_disabled",
+          "facts": {
+            "amount": 15000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_amount_min",
+        "group": "hard",
+        "title": "Сумма ниже минимума",
+        "expected": "amount_below_minimum",
+        "observed": {
+          "reason": "amount_below_minimum",
+          "facts": {
+            "amount": 999.99,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_amount_max",
+        "group": "hard",
+        "title": "Сумма выше максимума",
+        "expected": "amount_exceeds_limit",
+        "observed": {
+          "reason": "amount_exceeds_limit",
+          "facts": {
+            "amount": 100000.01,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_daily_limit",
+        "group": "hard",
+        "title": "Дневной денежный лимит",
+        "expected": "daily_amount_limit_exceeded",
+        "observed": {
+          "reason": "daily_amount_limit_exceeded",
+          "facts": {
+            "amount": 1000,
+            "bank": "sberbank",
+            "effective_daily_amount": 4999001.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_inflight_count",
+        "group": "hard",
+        "title": "Лимит одновременных операций",
+        "expected": "in_progress_count_limit_exceeded",
+        "observed": {
+          "reason": "in_progress_count_limit_exceeded",
+          "facts": {
+            "amount": 15000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 10,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_inflight_amount",
+        "group": "hard",
+        "title": "Лимит суммы в обработке",
+        "expected": "in_progress_amount_limit_exceeded",
+        "observed": {
+          "reason": "in_progress_amount_limit_exceeded",
+          "facts": {
+            "amount": 1000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_requisites",
+        "group": "hard",
+        "title": "Доступные реквизиты",
+        "expected": "no_available_requisites",
+        "observed": {
+          "reason": "no_available_requisites",
+          "facts": {
+            "amount": 15000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 0,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_rpm",
+        "group": "hard",
+        "title": "Лимит запросов в минуту",
+        "expected": "rpm_limit_exceeded",
+        "observed": {
+          "reason": "rpm_limit_exceeded",
+          "facts": {
+            "amount": 15000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 1
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_margin",
+        "group": "hard",
+        "title": "Запрет отрицательной экономики",
+        "expected": "negative_margin",
+        "observed": {
+          "reason": "negative_margin",
+          "facts": {
+            "amount": 15000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_bank",
+        "group": "hard",
+        "title": "Банк вне allowlist",
+        "expected": "bank_not_in_list",
+        "observed": {
+          "reason": "bank_not_in_list",
+          "facts": {
+            "amount": 15000,
+            "bank": "alfa",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_card",
+        "group": "hard",
+        "title": "Платёжная система карты",
+        "expected": "card_brand_not_allowed",
+        "observed": {
+          "reason": "card_brand_not_allowed",
+          "facts": {
+            "amount": 15000,
+            "bank": "sberbank",
+            "effective_daily_amount": 3200000.0,
+            "effective_in_progress_count": 4,
+            "effective_in_progress_amount": 380000.0,
+            "available_requisites": 12,
+            "rpm_count": 0
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "hard_fallback_discipline",
+        "group": "hard",
+        "title": "Fallback недоступен, пока есть внешние кандидаты",
+        "expected": "fallback_only then eligible",
+        "observed": {
+          "normal_pool": "fallback_only",
+          "after_exhaustion": "eligible"
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_count",
+        "group": "soft",
+        "title": "Целевая доля по количеству",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "count",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.075,
+                "secondary": 0.0
+              },
+              {
+                "provider": "beta",
+                "primary": 0.175,
+                "secondary": 0.0
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.075,
+                "secondary": 0.0
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.175,
+                "secondary": 0.0
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_volume",
+        "group": "soft",
+        "title": "Целевая доля по объёму",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "volume",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.05,
+                "secondary": 0.0
+              },
+              {
+                "provider": "beta",
+                "primary": 0.2,
+                "secondary": 0.0
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.05,
+                "secondary": 0.0
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.2,
+                "secondary": 0.0
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_conversion",
+        "group": "soft",
+        "title": "Консервативная конверсия",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "conversion",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.05
+              },
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.3
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.05
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.3
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_load",
+        "group": "soft",
+        "title": "Текущая нагрузка",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "load",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.1
+              },
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.8
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.1
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.9
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_margin",
+        "group": "soft",
+        "title": "Экономика провайдера",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "margin",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.33333333
+              },
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.86666667
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.33333333
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.86666667
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_priority",
+        "group": "soft",
+        "title": "Приоритет договора",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "priority",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.01
+              },
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.1
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.01
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.1
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_amount_fit",
+        "group": "soft",
+        "title": "Предпочтительный диапазон суммы",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "amount_fit",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.0
+              },
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.25742574
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.0
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.33333333
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "soft_turnover",
+        "group": "soft",
+        "title": "Минимальный оборот",
+        "expected": "one declared input change flips the winner",
+        "observed": {
+          "factor": "turnover_min",
+          "before": {
+            "winner": "alpha",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.0
+              },
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.9
+              }
+            ]
+          },
+          "after": {
+            "winner": "beta",
+            "all_eligible": true,
+            "ranking": [
+              {
+                "provider": "beta",
+                "primary": 0.0,
+                "secondary": 0.0
+              },
+              {
+                "provider": "alpha",
+                "primary": 0.0,
+                "secondary": 0.9
+              }
+            ]
+          }
+        },
+        "passed": true
+      },
+      {
+        "id": "runtime_deterministic",
+        "group": "runtime",
+        "title": "Повторяемость",
+        "expected": "identical digest",
+        "observed": {
+          "first": "a4e8001c454be8a8ece495e0cae9f83b65ae7ae42bf60f5f9084b679931594ff",
+          "second": "a4e8001c454be8a8ece495e0cae9f83b65ae7ae42bf60f5f9084b679931594ff"
+        },
+        "passed": true
+      },
+      {
+        "id": "runtime_coverage",
+        "group": "runtime",
+        "title": "Полное покрытие очереди",
+        "expected": "every operation exactly once",
+        "observed": {
+          "expected": 10,
+          "actual": 10,
+          "unique": 10
+        },
+        "passed": true
+      },
+      {
+        "id": "runtime_timeout_cascade",
+        "group": "runtime",
+        "title": "Timeout → подтверждённая отмена → освобождение → fallback",
+        "expected": "safe reroute after release",
+        "observed": {
+          "providers": [
+            "vipay",
+            "quickpay"
+          ],
+          "results": [
+            "expired",
+            "approved"
+          ],
+          "events": [
+            "attempt_received",
+            "attempt_evaluated",
+            "attempt_reserved",
+            "attempt_sent",
+            "attempt_timeout",
+            "status_confirmed",
+            "attempt_cancelled",
+            "attempt_released",
+            "attempt_reroute",
+            "attempt_received",
+            "attempt_evaluated",
+            "attempt_reserved",
+            "attempt_sent",
+            "attempt_approved",
+            "attempt_committed"
+          ]
+        },
+        "passed": true
+      },
+      {
+        "id": "runtime_pending_reserve",
+        "group": "runtime",
+        "title": "Неизвестный статус удерживает резерв",
+        "expected": "pending=1 and reserved=1",
+        "observed": {
+          "result": "expired",
+          "pending": 1,
+          "reserved": 1
+        },
+        "passed": true
+      },
+      {
+        "id": "runtime_idempotency",
+        "group": "runtime",
+        "title": "Повтор операции не создаёт вторую выплату",
+        "expected": "same response and no new event",
+        "observed": {
+          "events_before": 60,
+          "events_after": 60,
+          "same_response": true
+        },
+        "passed": true
+      },
+      {
+        "id": "runtime_privacy",
+        "group": "runtime",
+        "title": "Чувствительные реквизиты не попадают в артефакты",
+        "expected": "zero queue phones",
+        "observed": {
+          "checked": 10,
+          "leaked": 0
+        },
+        "passed": true
+      },
+      {
+        "id": "runtime_no_lookahead",
+        "group": "runtime",
+        "title": "Роутер не видит будущую очередь",
+        "expected": "lookahead_used=false",
+        "observed": {
+          "lookahead_used": false
+        },
+        "passed": true
+      },
+      {
+        "id": "challenge_weight_boundary",
+        "group": "challenge",
+        "title": "Минимальная цена переключения",
+        "expected": "verified counterfactual with adjacent losing Float",
+        "observed": {
+          "operation_id": "op_101",
+          "provider": "vipay",
+          "factor": "count_potential_change",
+          "current_weight": 0.6,
+          "boundary": 0.7985512111061964,
+          "proposed_weight": 0.7985512111061965,
+          "original_chain": [
+            "payflow",
+            "vipay",
+            "quickpay",
+            "spacepayments"
+          ],
+          "verified_chain": [
+            "vipay",
+            "payflow",
+            "quickpay",
+            "spacepayments"
+          ],
+          "adjacent_losing_chain": [
+            "payflow",
+            "vipay",
+            "quickpay",
+            "spacepayments"
+          ],
+          "snapshot_hash": "9ce831d586211176a0607e7952bdfd35658ca838bf260833aa52a61e2880889b"
+        },
+        "passed": true
+      },
+      {
+        "id": "challenge_hard_veto",
+        "group": "challenge",
+        "title": "Мягкий вес не обходит hard-ограничение",
+        "expected": "not_eligible",
+        "observed": {
+          "operation_id": "op_103",
+          "provider": "vipay",
+          "status": "not_eligible",
+          "hard_reason": "amount_exceeds_limit",
+          "snapshot_hash": "be373f9f08d3159c02c0738c082070ffc2bed8c4df4b0fe3cafd9828118ecfd2"
+        },
+        "passed": true
+      }
+    ]
+  },
   "shadow_methodology": {
     "hard_rules": "same Router, HardGate and Ledger; separate state per strategy",
     "outcomes": "immediate approvals for all strategies; no live provider calls",

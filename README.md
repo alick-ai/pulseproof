@@ -11,12 +11,13 @@ The experimental planner answers three testable questions: can a forbidden provi
 Prepare `rake jury` before the presentation, then run the short checks live:
 
 ```bash
+bin/pulseproof evidence --human
 bin/pulseproof challenge op_103 --prefer vipay --human --report outputs/planner-report.json
 bin/pulseproof challenge op_101 --prefer vipay --factor count_potential_change --human --report outputs/planner-report.json
 bin/pulseproof explain op_101 --decisions outputs/planner-decisions.json --report outputs/planner-report.json
 ```
 
-The first answer is `not_eligible`: the 150,000-ruble payment exceeds vipay's 100,000-ruble limit. A soft objective cannot overrule that gate. For op_101, `challenge` calculates the legal alternative's winning regions and verifies a proposed change from the current count weight of 0.6. On the current public snapshot, **0.7985512111061965** selects vipay while the adjacent lower Float **0.7985512111061964** still selects payflow; the actual router reproduces the switch. The continuation is reoptimized for every tested weight. `--human` gives concise Russian output; omitting it preserves the full JSON output, including exact boundaries. See the short walkthrough in [`docs/JURY_DEMO.md`](docs/JURY_DEMO.md).
+`evidence` executes 31 public, deterministic examples instead of displaying a checklist: 14 hard-rule gates, 8 isolated soft-factor winner flips, 7 streaming-runtime invariants and 2 inverse-decision challenges. The first challenge answer is `not_eligible`: the 150,000-ruble payment exceeds vipay's 100,000-ruble limit. A soft objective cannot overrule that gate. For op_101, `challenge` calculates the legal alternative's winning regions and verifies a proposed change from the current count weight of 0.6. On the current public snapshot, **0.7985512111061965** selects vipay while the adjacent lower Float **0.7985512111061964** still selects payflow; the actual router reproduces the switch. The continuation is reoptimized for every tested weight. `--human` gives concise Russian output; omitting it preserves the full JSON output, including exact boundaries. See the short walkthrough in [`docs/JURY_DEMO.md`](docs/JURY_DEMO.md).
 
 ## Stopcode: generate, commit, verify publication
 
@@ -54,6 +55,14 @@ rake submission_git
 ```
 
 This read-only check requires a real `HEAD` commit, both required JSON blobs in its root, matching index/worktree bytes, and validation against the selected organizer queue. It does not regenerate files, create commits, or push. `LOCAL_ARTIFACTS_COMMITTED` concerns these two artifacts only; publication and the completeness of the committed source code must be checked separately. A local `rake release` or `submission_layout` pass does **not** establish Git delivery. Confirm the final commit and both files in the repository actually submitted to the organizers.
+
+Before stopcode, rehearse the exact generate → commit → push → Git-check path without touching the repository or its remote:
+
+```bash
+rake rehearse_submission
+```
+
+The rehearsal refuses a dirty source tree or a real root stopcode file, creates a disposable clone and disposable local bare remote, uses the public queue only inside that clone, runs the real `rake submit`, commits and pushes all three test artifacts there, verifies `rake submission_git`, compares local and remote commit hashes, and removes the clone. It proves the mechanics of the path, not the unknown organizer queue or external GitHub availability.
 
 Inspect any decision without opening the optional dashboard:
 
@@ -132,9 +141,9 @@ Then run:
 rake release
 ```
 
-The gate runs the Ruby test suite, generates both submission files, checks them with the strict validator and the official public validator, scans outputs for all sensitive queue values, verifies the Ruby-majority threshold, regenerates the demo trace, lints the interface and creates a production build.
+The gate runs the Ruby test suite, generates both submission files, checks them with the strict validator and the official public validator, scans outputs for all sensitive queue values, verifies the Ruby-majority threshold, executes the 31-case requirements evidence, regenerates the demo trace, lints the interface and creates a production build.
 
-Last verified full gate: **183 tests, 6228 assertions, no failures; official public balanced validation 29/29; authored Ruby share 74.96%; privacy, lint and production build passed.** The full suite passed with locale variables unset, with C locale, and with UTF-8 locale; the complete release gate passed under C. These are local checks, not evidence of hidden-test success.
+Last verified full gate: **188 tests, 6299 assertions, no failures; executable requirements evidence 31/31; official public balanced validation 29/29; authored Ruby share 74.95%; privacy, lint and production build passed.** The complete gate passed in the normal local environment; the locale regression suite inside it also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
 
 The normal suite also starts the CLI tests in fresh subprocesses under unset, C, POSIX and UTF-8 locales. UTF-8 file/pipe decoding is explicit in those tests; `Encoding.default_external` is not globally overridden. Reproduce the strict locale check with:
 
@@ -157,7 +166,7 @@ The console exposes two runs generated by the same engine:
 - **Live run** — a precomputed simulation of the official public queue: 40/30/30 count distribution. The count-only hindsight bound is 10 percentage points of L1 deviation; this run reaches it. This does not prove a global optimum across quality, cost, volume or unknown future operations.
 - **Chaos run** — an injected `op_106` timeout, late cancel, reservation release and reroute from `vipay` to `quickpay`.
 
-Chaos opens on the exceptional operation so a judge sees the core safety story immediately. **Запустить демо** first replays the queue operation by operation, then slows down into six synchronized runtime events: reserve, timeout, confirmed cancel, compensating release, fresh-snapshot reroute and approval. The explanation and provider matrix change with the event, so the screen never uses future knowledge to justify a past decision. During a pitch, any of the six route nodes can be clicked to pause and inspect that exact state.
+Chaos opens on the exceptional operation so a judge sees the core safety story immediately. **Запустить демо** first replays the queue operation by operation, then slows down into six synchronized runtime events: reserve, timeout, confirmed cancel, compensating release, fresh-snapshot reroute and approval. The explanation and provider matrix change with the event, so the screen never uses future knowledge to justify a past decision. During a pitch, any of the six route nodes can be clicked to pause and inspect that exact state. The first-screen evidence band is generated by the Ruby engine and exposes the verified op_101 switching boundary, the op_103 hard veto, the 31/31 executable matrix and one isolated load-only winner flip; the existing strategy comparison remains one tab away.
 
 The Shadow Replay area compares deterministic weighted random, conversion-first and PulseProof using the same Router, HardGate and Ledger with separate states and immediate approved outcomes. “Expected” is a proxy derived from snapshot conversion, not observed success uplift. One queue and one random seed cannot establish statistical superiority. Every operation also has a downloadable decision-proof JSON containing sanitized snapshots, candidate evaluations, reservations and event-chain head.
 

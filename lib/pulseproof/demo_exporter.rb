@@ -4,11 +4,12 @@ require "digest"
 
 module PulseProof
   class DemoExporter
-    def initialize(queue:, providers_document:, primary_result:, chaos_result:)
+    def initialize(queue:, providers_document:, primary_result:, chaos_result:, evidence: nil)
       @queue = queue
       @providers_document = providers_document
       @primary = primary_result
       @chaos = chaos_result
+      @evidence = evidence
       @provider_configs = providers_document.fetch("providers").each_with_object({}) do |provider, out|
         out[provider.fetch("payment_system")] = provider
       end
@@ -23,6 +24,7 @@ module PulseProof
         "live" => scenario(@primary),
         "chaos" => scenario(@chaos),
         "shadow_replay" => shadow_replay,
+        "evidence" => @evidence,
         "shadow_methodology" => {
           "hard_rules" => "same Router, HardGate and Ledger; separate state per strategy",
           "outcomes" => "immediate approvals for all strategies; no live provider calls",

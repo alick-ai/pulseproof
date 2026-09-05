@@ -6,7 +6,7 @@ Implementation spec: `docs/UI_SPEC_V2.md`
 
 | Comparison point | Accepted direction | Implemented result | Status |
 | --- | --- | --- | --- |
-| Overall composition | Light fintech command bar, queue at left, decision theatre in the center, explanation at right, strategy/proof band below | Same three-column operating view and two-panel evidence band | Match |
+| Overall composition | Light fintech command bar, queue at left, decision theatre in the center, explanation at right, strategy/proof band below | Same three-column operating view; bottom band defaults to executable evidence and retains strategy comparison as a tab | Enhanced |
 | Visual language | White cards, cool-gray canvas, cobalt focus, green success, amber uncertainty, red hard exclusion | Same semantic palette, crisp one-pixel rules, restrained shadows and large readable type | Match |
 | Current operation | Large amount and bank identity above the route | Real `op_106`, `52 000 ₽`, Sberbank and event-driven route are the primary focal point | Match, official data substituted |
 | Route narrative | ViPay → timeout → confirmed cancel → release → QuickPay → approved | Six runtime phases with progress line, current-state halo, future-state dimming, synchronized text and click-to-scrub inspection | Enhanced |
@@ -14,6 +14,7 @@ Implementation spec: `docs/UI_SPEC_V2.md`
 | Explanation panel | “Почему QuickPay” with concise evidence | Context changes per phase: why ViPay, why wait, why retry is safe, how state is restored, then why QuickPay | Enhanced; removes hindsight leakage |
 | Operation queue | Selectable chronological operations with state | Official queue order is preserved; active, completed, pending and rerouted states are distinct | Match |
 | Strategy comparison | PulseProof highlighted against two baselines | Same queue and hard eligibility are replayed through PulseProof, conversion-first and deterministic random | Match, real metrics substituted |
+| Executable evidence | Not present in the accepted reference | Engine-generated switching boundary, hard veto, 31/31 requirement matrix and isolated load-factor winner flip on the first screen | Intentional functional addition |
 | Proof surface | Compact reproducibility card and event-chain hash | Snapshot/policy/event metadata plus copyable and downloadable decision proof JSON | Enhanced |
 | Responsive behavior | Dense desktop product that remains usable on narrow screens | Queue becomes a horizontal strip, panels stack, route scrolls locally, document has no designed horizontal overflow | Match |
 
@@ -25,6 +26,7 @@ Implementation spec: `docs/UI_SPEC_V2.md`
 - Reference placeholder scores were replaced by engine-generated values: target deviation and expected settlement on the same queue.
 - The traffic share moves only after QuickPay accepts the payout, because QA clarified that `traffic_percentage` is counted by the final provider after fallback.
 - The proof area gained real copy/export actions. This is a product enhancement, not a decorative deviation.
+- The bottom band now opens on **«Доказательства»** because the evaluation path must expose falsifiable engine behavior before comparative claims. **«Стратегии»** preserves the accepted comparison without duplicating the panel.
 
 ## Copy audit
 
@@ -35,8 +37,7 @@ Implementation spec: `docs/UI_SPEC_V2.md`
 
 ## Verification record
 
-- Desktop visual pass was completed against a `1600 × 1000` CSS viewport before the final copy/export enhancement; the supplied screenshot is rasterized by the in-app browser at `800 × 500`.
-- The accepted concept and the verified render were both visually inspected at source size.
-- Live/Chaos switching, queue selection, demo playback and proof details were exercised successfully in the earlier browser pass.
-- The current browser tab is stuck on a browser-owned connection-error document; its URL policy blocks automated return to localhost. Final runtime verification therefore uses the clean production build plus the full release gate, and the user must refresh the already-open `http://127.0.0.1:4173/` tab once.
-- Remaining deliberate difference: the browser screenshot predates the final synchronized phase copy, click-to-scrub route and proof-export buttons; layout geometry is unchanged and all additions pass lint and production build.
+- The accepted concept and current implementation were visually inspected at source size against a `1600 × 1000` CSS viewport.
+- A separate `390 × 844` render verified stacked panels and no document-level horizontal overflow; the dense queue and route remain locally scrollable rails.
+- Live/Chaos switching, evidence/strategy switching and narrow-layout semantics were exercised in a real browser. Console result: zero errors and zero warnings after the favicon fix.
+- Final lint and production build pass as part of the full release gate.

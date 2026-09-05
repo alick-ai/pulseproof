@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import DecisionStage from './components/DecisionStage.jsx'
+import EvidenceBand from './components/EvidenceBand.jsx'
 import HeaderBar from './components/HeaderBar.jsx'
 import OperationQueue from './components/OperationQueue.jsx'
 import ProofDrawer from './components/ProofDrawer.jsx'
 import ProviderMatrix from './components/ProviderMatrix.jsx'
-import StrategyBand from './components/StrategyBand.jsx'
 import WhyPanel from './components/WhyPanel.jsx'
 
 function App() {
@@ -106,7 +106,7 @@ function App() {
         </section>
 
         <WhyPanel operation={operation} frame={frame} playbackPhase={playbackPhase} />
-        <StrategyBand traces={data.shadow_replay} />
+        <EvidenceBand evidence={data.evidence} traces={data.shadow_replay} />
         <ProofDrawer operation={operation} frame={frame} />
       </main>
     </div>

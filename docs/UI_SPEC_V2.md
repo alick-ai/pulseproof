@@ -18,7 +18,7 @@ The screen must answer four questions in order, without requiring technical know
 - Center operation stage: large amount/bank and a route line showing attempt, timeout, confirmed cancellation, capacity release, fallback and approval.
 - Center provider comparison: hard-rule result, target/actual traffic, conservative reliability, available daily capacity and final state.
 - Right explanation: three plain-language reasons and an oversized final provider.
-- Bottom: full-queue policy comparison and expandable proof hashes.
+- Bottom: engine-generated decision evidence by default, the full-queue policy comparison one tab away, and proof hashes.
 
 ## Tokens
 
@@ -31,7 +31,7 @@ The screen must answer four questions in order, without requiring technical know
 
 ## Allowed first-viewport copy
 
-`PulseProof`, `Умный роутинг выплат`, `Live`, `Chaos`, `Все проверки пройдены`, `Запустить демо`, `Очередь`, `Операция`, `Жёсткие ограничения`, `Баланс трафика`, `Надёжность`, `Свободный лимит`, `Почему`, `Итоговый провайдер`, `Сравнение стратегий`, `Доказательство решения`.
+`PulseProof`, `Умный роутинг выплат`, `Live`, `Chaos`, `Все проверки пройдены`, `Запустить демо`, `Очередь`, `Операция`, `Жёсткие ограничения`, `Баланс трафика`, `Надёжность`, `Свободный лимит`, `Почему`, `Итоговый провайдер`, `Проверяемые свойства`, `Доказательства`, `Стратегии`, `Доказательство решения`.
 
 ## Responsive behavior
 

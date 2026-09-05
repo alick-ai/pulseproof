@@ -19,7 +19,7 @@ options = {
 command = ARGV.first && !ARGV.first.start_with?("-") ? ARGV.shift : "run"
 
 parser = OptionParser.new do |opts|
-  opts.banner = "Usage: bin/pulseproof [run|submit|validate|stream|lab|learn-lab|plan-lab|challenge|explain|demo] [operation_id] [options]"
+  opts.banner = "Usage: bin/pulseproof [run|submit|validate|stream|lab|learn-lab|plan-lab|challenge|evidence|explain|demo] [operation_id] [options]"
   opts.on("--providers PATH") { |value| options[:providers] = value }
   opts.on("--queue PATH") { |value| options[:queue] = value }
   opts.on("--history PATH") { |value| options[:history] = value }
@@ -35,11 +35,12 @@ parser = OptionParser.new do |opts|
   opts.on("--factor NAME", "One planner objective coefficient to vary") { |value| options[:factor] = value }
   opts.on("--attempt NUMBER", Integer, "Attempt snapshot for challenge (default 1)") { |value| options[:attempt] = value }
   opts.on("--challenge-output PATH", "Optional counterfactual JSON, never changes provider rules") { |value| options[:challenge_output] = value }
+  opts.on("--evidence-output PATH", "Optional executable requirements-evidence JSON") { |value| options[:evidence_output] = value }
   opts.on("--human", "Short Russian challenge explanation instead of JSON on stdout") { options[:human] = true }
   opts.on("-h", "--help") { puts opts; exit 0 }
 end
 parser.parse!(ARGV)
-options[:queue] = PulseProof::InputLocator.queue(root: ROOT, explicit: options[:queue]) unless %w[stream lab learn-lab plan-lab challenge].include?(command)
+options[:queue] = PulseProof::InputLocator.queue(root: ROOT, explicit: options[:queue]) unless %w[stream lab learn-lab plan-lab challenge evidence].include?(command)
 
 def runner(options, outcome_model = nil)
   PulseProof::Runner.new(
@@ -76,6 +77,25 @@ begin
     result["snapshot_certificate_verified"] = true
     PulseProof::OutputWriter.json(options[:challenge_output], result) if options[:challenge_output]
     puts(options[:human] ? PulseProof::ChallengePresenter.new(result: result).call : JSON.pretty_generate(result))
+  when "evidence"
+    result = PulseProof::EvidenceSuite.new(root: ROOT).call
+    PulseProof::OutputWriter.json(options[:evidence_output], result) if options[:evidence_output]
+    if options[:human]
+      summary = result.fetch("summary")
+      puts "ИСПОЛНЯЕМАЯ МАТРИЦА ТРЕБОВАНИЙ: #{summary.fetch('passed')}/#{summary.fetch('total')} PASS"
+      summary.fetch("groups").each_value do |group|
+        puts "#{group.fetch('title')}: #{group.fetch('passed')}/#{group.fetch('total')}"
+      end
+      load_case = result.fetch("cases").find { |item| item.fetch("id") == "soft_load" }
+      boundary = result.fetch("cases").find { |item| item.fetch("id") == "challenge_weight_boundary" }
+      veto = result.fetch("cases").find { |item| item.fetch("id") == "challenge_hard_veto" }
+      puts "Нагрузка — единственное изменение: #{load_case.dig('observed', 'before', 'winner')} → #{load_case.dig('observed', 'after', 'winner')}"
+      puts "Порог переключения op_101: #{boundary.dig('observed', 'current_weight')} → #{boundary.dig('observed', 'proposed_weight')}"
+      puts "Hard-veto op_103: #{veto.dig('observed', 'provider')} = #{veto.dig('observed', 'status')}"
+      puts result.fetch("scope")
+    else
+      puts JSON.pretty_generate(result)
+    end
   when "plan-lab"
     document = PulseProof::InputLoader.validate_provider_document!(PulseProof::InputLoader.json(options[:providers]))
     result = PulseProof::PlannerLab.new(providers_document: document,
@@ -196,7 +216,8 @@ begin
       queue: queue,
       providers_document: providers,
       primary_result: primary,
-      chaos_result: chaos
+      chaos_result: chaos,
+      evidence: PulseProof::EvidenceSuite.new(root: ROOT).call
     ).build
     PulseProof::OutputWriter.json(options[:demo], payload)
     puts "demo data: #{options[:demo]}"

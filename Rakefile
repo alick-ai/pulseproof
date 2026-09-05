@@ -69,6 +69,16 @@ task submission_layout: :route do
   puts "LOCAL_LAYOUT_PASS: #{required.join(' + ')} in repository root; commit and publication NOT verified"
 end
 
+desc "Run executable public requirements evidence and save an isolated report"
+task :evidence do
+  sh "bin/pulseproof evidence --human --evidence-output outputs/requirements-evidence.json"
+end
+
+desc "Rehearse stopcode generation, commit, push and Git verification in a disposable local clone"
+task :rehearse_submission do
+  sh "ruby scripts/rehearse_submission.rb"
+end
+
 desc "Fail unless the organizer stopcode queue is present"
 task :require_stopcode do
   path = selected_queue
@@ -110,7 +120,7 @@ task :ruby_majority do
 end
 
 desc "Full LOCAL deterministic release gate (not a Git delivery check)"
-task release: [:test, :validate, :pii, :ruby_majority, :submission_layout, :frontend] do
+task release: [:test, :validate, :pii, :ruby_majority, :submission_layout, :evidence, :frontend] do
   puts "PulseProof release gate: LOCAL_CHECKS_PASS — Git commit and remote publication NOT verified"
 end
 
