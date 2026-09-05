@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "digest"
 require "json"
 require "tempfile"
 
@@ -10,20 +11,19 @@ module PulseProof
       directory = File.dirname(File.expand_path(path))
       FileUtils.mkdir_p(directory)
       tempfile = Tempfile.new(["pulseproof", ".json"], directory)
-      tempfile.write(pretty ? JSON.pretty_generate(payload) : JSON.generate(payload))
-      tempfile.write("\n")
+      encoded = "#{pretty ? JSON.pretty_generate(payload) : JSON.generate(payload)}\n"
+      expected_digest = Digest::SHA256.hexdigest(encoded) if verify
+      tempfile.write(encoded)
       tempfile.flush
       tempfile.fsync
       tempfile.close
       File.rename(tempfile.path, path)
       File.chmod(0o644, path)
       if verify
-        restored = JSON.parse(File.read(path, encoding: "UTF-8"))
-        raise InvariantError, "persisted JSON differs from the validated in-memory artifact: #{path}" unless restored == payload
+        actual_digest = Digest::SHA256.file(path).hexdigest
+        raise InvariantError, "persisted JSON bytes differ from the validated serialization: #{path}" unless actual_digest == expected_digest
       end
       path
-    rescue JSON::ParserError => error
-      raise InvariantError, "persisted JSON cannot be read back: #{path} (#{error.message})"
     ensure
       tempfile.close! if tempfile && !tempfile.closed?
     end

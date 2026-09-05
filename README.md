@@ -43,7 +43,7 @@ Then use the queue-dependent fast path:
 rake stopcode
 ```
 
-The fast gate verifies that code, configuration, tests, commit and Ruby version still match the fully tested receipt. Only the ignored organizer queue and the two generated artifacts may differ. It then routes every operation, strictly validates coverage and hard limits, checks private data and file layout, and writes the required files in the repository root (each file uses atomic replacement; the pair is not one filesystem transaction):
+The fast gate verifies that code, configuration, tests, commit and Ruby version still match the fully tested receipt. Only the ignored organizer queue and the two generated artifacts may differ. It then routes every operation, strictly validates coverage and hard limits, checks private data and file layout, atomically writes each required file, verifies the exact persisted serialization bytes by SHA-256, and independently parses both files to check queue coverage (the pair is not one filesystem transaction):
 
 - `routing_decisions_test.json`
 - `routing_report_test.json`
