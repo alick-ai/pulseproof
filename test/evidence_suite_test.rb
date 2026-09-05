@@ -41,6 +41,13 @@ class EvidenceSuiteTest < Minitest::Test
     assert_in_delta 0.7985512111061964, switch.dig("observed", "boundary"), 1e-15
     assert_equal "payflow", switch.dig("observed", "original_chain", 0)
     assert_equal "vipay", switch.dig("observed", "verified_chain", 0)
+    assert_equal %w[payflow vipay quickpay spacepayments], switch.dig("observed", "plan_context", "chain")
+    assert_equal true, switch.dig("observed", "plan_context", "exact_for_frozen_model")
+    assert_equal false, switch.dig("observed", "plan_context", "factorial_search_used")
+    assert_equal({ "lower" => 0.9, "upper" => 1.0 }, switch.dig("observed", "plan_context", "dependence_certificate", "success_probability"))
+    assert_in_delta 0.9993649483398642, switch.dig("observed", "plan_context", "dependence_certificate", "independent_reference", "success"), 1e-15
+    assert_equal ["spacepayments"], switch.dig("observed", "plan_context", "dependence_certificate", "lower_bound_drivers")
+    assert_equal false, switch.dig("observed", "plan_context", "dependence_certificate", "optimal_order_certified")
     assert veto.fetch("passed")
     assert_equal "not_eligible", veto.dig("observed", "status")
   end

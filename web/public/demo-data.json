@@ -32031,7 +32031,40 @@
             "quickpay",
             "spacepayments"
           ],
-          "snapshot_hash": "9ce831d586211176a0607e7952bdfd35658ca838bf260833aa52a61e2880889b"
+          "snapshot_hash": "9ce831d586211176a0607e7952bdfd35658ca838bf260833aa52a61e2880889b",
+          "plan_context": {
+            "chain": [
+              "payflow",
+              "vipay",
+              "quickpay",
+              "spacepayments"
+            ],
+            "objective": 1.50628923,
+            "optimization_method": "exact_pair_exchange",
+            "exact_for_frozen_model": true,
+            "factorial_search_used": false,
+            "dependence_certificate": {
+              "status": "certified",
+              "success_probability": {
+                "lower": 0.9,
+                "upper": 1.0
+              },
+              "all_failed_probability": {
+                "lower": 0.0,
+                "upper": 0.09999999999999998
+              },
+              "independent_reference": {
+                "success": 0.9993649483398642,
+                "all_failed": 0.0006350516601357676
+              },
+              "lower_bound_drivers": [
+                "spacepayments"
+              ],
+              "success_lower_bound_gain_over_fallback": 0.0,
+              "optimal_order_certified": false,
+              "changes_routing": false
+            }
+          }
         },
         "passed": true
       },

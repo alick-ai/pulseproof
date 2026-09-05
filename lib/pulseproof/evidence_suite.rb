@@ -179,7 +179,8 @@ module PulseProof
             "original_chain" => switch["original_chain"],
             "verified_chain" => switch["verified_chain"],
             "adjacent_losing_chain" => switch.dig("adjacent_weight_toward_current", "chain"),
-            "snapshot_hash" => switch["snapshot_hash"]
+            "snapshot_hash" => switch["snapshot_hash"],
+            "plan_context" => switch["plan_context"]
           }, switch["status"] == "verified_counterfactual" && switch["snapshot_certificate_verified"] && switch["original_chain"] != switch["verified_chain"]),
         item("challenge_hard_veto", "challenge", "Мягкий вес не обходит hard-ограничение", "not_eligible",
           { "operation_id" => "op_103", "provider" => "vipay", "status" => veto["status"], "hard_reason" => veto["hard_reason"], "snapshot_hash" => veto["snapshot_hash"] },
@@ -264,8 +265,9 @@ module PulseProof
     def policy_challenge(operation_id, prefer, factor)
       proof = planner_result.report.fetch("proof_capsules").fetch(operation_id)
       ranking = proof.fetch("candidate_rankings").first
-      frontier = ranking.first.dig("outcome_plan", "evaluated_frontier")
-      model = ranking.first.dig("outcome_plan", "cascade_model")
+      selected_plan = ranking.first.fetch("outcome_plan")
+      frontier = selected_plan.fetch("evaluated_frontier")
+      model = selected_plan.fetch("cascade_model")
       snapshot = proof.fetch("attempt_snapshots").first.fetch("snapshot")
       fallback = snapshot.fetch("policy").fetch("fallback_provider", "spacepayments")
       hard_reason = proof.fetch("hard_evaluations").flatten.find { |row| row.fetch("provider") == prefer && row.fetch("eligible") == false }
@@ -273,7 +275,29 @@ module PulseProof
       PolicyChallenge.new(frontier: frontier, model: model, weights: snapshot.fetch("policy").fetch("outcome_planner").fetch("weights"))
         .call(prefer: prefer, factor: factor)
         .merge("snapshot_hash" => proof.fetch("attempt_snapshots").first.fetch("snapshot_hash"),
-          "snapshot_certificate_verified" => true, "hard_reason" => hard_reason && hard_reason.fetch("reason"))
+          "snapshot_certificate_verified" => true, "hard_reason" => hard_reason && hard_reason.fetch("reason"),
+          "plan_context" => plan_context(selected_plan))
+    end
+
+    def plan_context(plan)
+      certificate = plan.fetch("dependence_certificate")
+      {
+        "chain" => plan.fetch("chain"),
+        "objective" => plan.fetch("objective"),
+        "optimization_method" => plan.dig("optimization", "method"),
+        "exact_for_frozen_model" => plan.dig("optimization", "exact_for_frozen_model"),
+        "factorial_search_used" => plan.dig("optimization", "factorial_search_used"),
+        "dependence_certificate" => {
+          "status" => certificate.fetch("status"),
+          "success_probability" => certificate.fetch("success_probability"),
+          "all_failed_probability" => certificate.fetch("all_failed_probability"),
+          "independent_reference" => certificate.fetch("independent_reference"),
+          "lower_bound_drivers" => certificate.fetch("lower_bound_drivers"),
+          "success_lower_bound_gain_over_fallback" => certificate.dig("fallback", "success_lower_bound_gain_over_fallback"),
+          "optimal_order_certified" => certificate.dig("scope", "optimal_order_certified"),
+          "changes_routing" => certificate.dig("scope", "changes_routing")
+        }
+      }
     end
 
     def item(id, group, title, expected, observed, passed)

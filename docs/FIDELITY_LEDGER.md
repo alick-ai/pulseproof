@@ -14,7 +14,7 @@ Implementation spec: `docs/UI_SPEC_V2.md`
 | Explanation panel | “Почему QuickPay” with concise evidence | Context changes per phase: why ViPay, why wait, why retry is safe, how state is restored, then why QuickPay | Enhanced; removes hindsight leakage |
 | Operation queue | Selectable chronological operations with state | Official queue order is preserved; active, completed, pending and rerouted states are distinct | Match |
 | Strategy comparison | PulseProof highlighted against two baselines | Same queue and hard eligibility are replayed through PulseProof, conversion-first and deterministic random | Match, real metrics substituted |
-| Executable evidence | Not present in the accepted reference | Engine-generated switching boundary, hard veto, 31/31 requirement matrix and isolated load-factor winner flip on the first screen | Intentional functional addition |
+| Executable evidence | Not present in the accepted reference | Engine-generated switching boundary, hard veto, 31/31 requirement matrix and isolated load-factor winner flip on the first screen; full cascade and dependence bounds in the adjacent robustness tab | Intentional functional addition |
 | Proof surface | Compact reproducibility card and event-chain hash | Snapshot/policy/event metadata plus copyable and downloadable decision proof JSON | Enhanced |
 | Responsive behavior | Dense desktop product that remains usable on narrow screens | Queue becomes a horizontal strip, panels stack, route scrolls locally, document has no designed horizontal overflow | Match |
 
