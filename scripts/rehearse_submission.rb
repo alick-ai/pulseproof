@@ -39,7 +39,7 @@ Dir.mktmpdir("pulseproof-submission-rehearsal-") do |directory|
   FileUtils.cp(File.join(worktree, "data/operations_queue_10.json"), File.join(worktree, "operations_queue_test.json"))
   submit = capture!(RbConfig.ruby, "-S", "rake", "submit", chdir: worktree, label: "Stopcode generation gate")
 
-  capture!("git", "add", "operations_queue_test.json", "routing_decisions_test.json", "routing_report_test.json", chdir: worktree, label: "Stage final artifacts")
+  capture!("git", "add", "routing_decisions_test.json", "routing_report_test.json", chdir: worktree, label: "Stage final artifacts")
   capture!("git", "commit", "-m", "Rehearse stopcode artifacts", chdir: worktree, label: "Commit final artifacts")
   capture!("git", "init", "--bare", remote, chdir: directory, label: "Isolated bare remote")
   capture!("git", "remote", "set-url", "origin", remote, chdir: worktree, label: "Isolated remote binding")

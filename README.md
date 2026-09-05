@@ -62,7 +62,7 @@ Before stopcode, rehearse the exact generate → commit → push → Git-check p
 rake rehearse_submission
 ```
 
-The rehearsal refuses a dirty source tree or a real root stopcode file, creates a disposable clone and disposable local bare remote, uses the public queue only inside that clone, runs the real `rake submit`, commits and pushes all three test artifacts there, verifies `rake submission_git`, compares local and remote commit hashes, and removes the clone. It proves the mechanics of the path, not the unknown organizer queue or external GitHub availability.
+The rehearsal refuses a dirty source tree or a real root stopcode file, creates a disposable clone and disposable local bare remote, uses the public queue only inside that clone, runs the real `rake submit`, commits and pushes the two required output artifacts there, verifies `rake submission_git`, compares local and remote commit hashes, and removes the clone. The ignored input queue remains local to the disposable clone. This proves the mechanics of the path, not the unknown organizer queue or external GitHub availability.
 
 Inspect any decision without opening the optional dashboard:
 
