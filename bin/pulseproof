@@ -36,7 +36,6 @@ parser = OptionParser.new do |opts|
   opts.on("--attempt NUMBER", Integer, "Attempt snapshot for challenge (default 1)") { |value| options[:attempt] = value }
   opts.on("--challenge-output PATH", "Optional counterfactual JSON, never changes provider rules") { |value| options[:challenge_output] = value }
   opts.on("--evidence-output PATH", "Optional executable requirements-evidence JSON") { |value| options[:evidence_output] = value }
-  opts.on("--compact-output", "Write compact JSON for the time-critical stopcode path") { options[:compact_output] = true }
   opts.on("--verify-write", "Read persisted bytes back and verify the validated serialization digest") { options[:verify_write] = true }
   opts.on("--human", "Short Russian challenge explanation instead of JSON on stdout") { options[:human] = true }
   opts.on("-h", "--help") { puts opts; exit 0 }
@@ -173,9 +172,8 @@ begin
       raise PulseProof::InputError, "stopcode queue not found; expected operations_queue_test.json in repository root (use `run` for the public sample)"
     end
     result = runner(options).run
-    output_options = { pretty: !options[:compact_output], verify: options[:verify_write] }
-    PulseProof::OutputWriter.json(options[:decisions], result.decisions, **output_options)
-    PulseProof::OutputWriter.json(options[:report], result.report, **output_options)
+    PulseProof::OutputWriter.json(options[:decisions], result.decisions, verify: options[:verify_write])
+    PulseProof::OutputWriter.json(options[:report], result.report, verify: options[:verify_write])
     if command == "submit"
       PulseProof::StrictValidator.new(
         queue: PulseProof::InputLoader.json(options[:queue]),

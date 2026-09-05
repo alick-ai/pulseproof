@@ -7,11 +7,11 @@ require "tempfile"
 
 module PulseProof
   class OutputWriter
-    def self.json(path, payload, pretty: true, verify: false)
+    def self.json(path, payload, verify: false)
       directory = File.dirname(File.expand_path(path))
       FileUtils.mkdir_p(directory)
       tempfile = Tempfile.new(["pulseproof", ".json"], directory)
-      encoded = "#{pretty ? JSON.pretty_generate(payload) : JSON.generate(payload)}\n"
+      encoded = "#{JSON.pretty_generate(payload)}\n"
       expected_digest = Digest::SHA256.hexdigest(encoded) if verify
       tempfile.write(encoded)
       tempfile.flush

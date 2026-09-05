@@ -157,7 +157,7 @@ rake release
 
 The gate runs the Ruby test suite, generates both submission files, checks them with the strict validator and the official public validator, scans outputs for all sensitive queue values, verifies the Ruby-majority threshold, executes the 31-case requirements evidence, regenerates the demo trace, lints the interface and creates a production build.
 
-Last verified test suite: **196 tests, 6334 assertions, no failures.** The complete release gate is rerun after every delivery change; its additional checks cover executable requirements evidence 31/31, official public balanced validation 29/29, authored Ruby share 75.0%, privacy, lint and production build. The locale regression suite also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
+Last verified test suite: **197 tests, 6338 assertions, no failures.** It includes a subprocess regression requiring the verified fast generator and standard generator to produce byte-identical decisions and reports. The complete release gate is rerun after every delivery change; its additional checks cover executable requirements evidence 31/31, official public balanced validation 29/29, authored Ruby share 75.0%, privacy, lint and production build. The locale regression suite also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
 
 The normal suite also starts the CLI tests in fresh subprocesses under unset, C, POSIX and UTF-8 locales. UTF-8 file/pipe decoding is explicit in those tests; `Encoding.default_external` is not globally overridden. Reproduce the strict locale check with:
 

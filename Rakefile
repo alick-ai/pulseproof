@@ -32,9 +32,9 @@ task :route do
   sh "bin/pulseproof run"
 end
 
-desc "Generate compact stopcode artifacts and verify their persisted bytes"
+desc "Generate readable stopcode artifacts and verify their persisted bytes"
 task :route_stopcode do
-  sh "bin/pulseproof run --compact-output --verify-write"
+  sh "bin/pulseproof run --verify-write"
 end
 
 desc "Generate browser replay data"

@@ -52,4 +52,28 @@ class SubmissionWorkflowTest < Minitest::Test
       assert_equal 1, PulseProof::InputLoader.json(report_path).fetch("total_operations")
     end
   end
+
+  def test_verified_and_standard_generation_are_byte_identical
+    Dir.mktmpdir("pulseproof-equivalent-generation-") do |directory|
+      queue_path = File.join(directory, "queue.json")
+      operation = queue.first.merge("operation_id" => "synthetic_equivalence")
+      File.binwrite(queue_path, JSON.generate([operation]))
+      fast_decisions = File.join(directory, "fast-decisions.json")
+      fast_report = File.join(directory, "fast-report.json")
+      full_decisions = File.join(directory, "full-decisions.json")
+      full_report = File.join(directory, "full-report.json")
+
+      _stdout, stderr, status = Open3.capture3(RbConfig.ruby, File.join(ROOT, "bin/pulseproof"),
+        "run", "--verify-write", "--queue", queue_path, "--decisions", fast_decisions, "--report", fast_report,
+        chdir: directory, binmode: true)
+      assert status.success?, stderr
+      _stdout, stderr, status = Open3.capture3(RbConfig.ruby, File.join(ROOT, "bin/pulseproof"),
+        "run", "--queue", queue_path, "--decisions", full_decisions, "--report", full_report,
+        chdir: directory, binmode: true)
+      assert status.success?, stderr
+
+      assert_equal File.binread(full_decisions), File.binread(fast_decisions)
+      assert_equal File.binread(full_report), File.binread(fast_report)
+    end
+  end
 end
