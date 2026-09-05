@@ -1,0 +1,28 @@
+{
+  "profile": "resilience",
+  "selection_mode": "balanced_minimax",
+  "outcome_mode": "approve",
+  "fallback_provider": "spacepayments",
+  "traffic_debt_bound": 4.0,
+  "volume_debt_bound": 4.0,
+  "recovery_rate": 0.75,
+  "conversion_guardrail": 0.55,
+  "history_prior_strength": 12,
+  "latency_timeout_sec": 180,
+  "weights": {
+    "count": 1.0, "volume": 0.8, "conversion": 0.35, "load": 0.25,
+    "margin": 0.12, "priority": 0.05, "amount_fit": 0.10, "turnover_min": 0.08
+  },
+  "amount_preferences": {
+    "payflow": { "min": 500, "max": 50000 },
+    "vipay": { "min": 50001, "max": 100000 },
+    "quickpay": { "min": 100001, "max": 200000 }
+  },
+  "capacity_guard": {
+    "enabled": true,
+    "min_samples": 20,
+    "max_samples": 1000,
+    "max_primary_regret_delta": 0.25,
+    "max_conversion_drop": 0.02
+  }
+}

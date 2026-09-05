@@ -1,0 +1,227 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "optparse"
+require_relative "../lib/pulseproof"
+
+ROOT = File.expand_path("..", __dir__)
+
+options = {
+  providers: File.join(ROOT, "data/providers.json"),
+  queue: nil,
+  history: File.join(ROOT, "data/operations_history.csv"),
+  policy: File.join(ROOT, "config/balanced.json"),
+  decisions: File.join(ROOT, "routing_decisions_test.json"),
+  report: File.join(ROOT, "routing_report_test.json"),
+  demo: File.join(ROOT, "web/public/demo-data.json")
+}
+
+command = ARGV.first && !ARGV.first.start_with?("-") ? ARGV.shift : "run"
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: bin/pulseproof [run|submit|validate|stream|lab|learn-lab|plan-lab|challenge|explain|demo] [operation_id] [options]"
+  opts.on("--providers PATH") { |value| options[:providers] = value }
+  opts.on("--queue PATH") { |value| options[:queue] = value }
+  opts.on("--history PATH") { |value| options[:history] = value }
+  opts.on("--policy PATH") { |value| options[:policy] = value }
+  opts.on("--simulation-mode MODE", %w[approve deterministic], "Explicit simulated response mode for run/submit/demo; never sends real payouts") { |value| options[:simulation_mode] = value }
+  opts.on("--decisions PATH") { |value| options[:decisions] = value }
+  opts.on("--report PATH") { |value| options[:report] = value }
+  opts.on("--demo-data PATH") { |value| options[:demo] = value }
+  opts.on("--outcomes PATH", "Scripted simulator outcomes for streaming tests (not a bank connector)") { |value| options[:outcomes] = value }
+  opts.on("--lab-output PATH", "Experiment result (does not overwrite submission files)") { |value| options[:lab_output] = value }
+  opts.on("--lab-seeds LIST", Array, "Comma-separated integer seeds for learn-lab") { |values| options[:lab_seeds] = values.map { |value| Integer(value) } }
+  opts.on("--prefer NAME", "Legal first provider requested for a read-only policy challenge") { |value| options[:prefer] = value }
+  opts.on("--factor NAME", "One planner objective coefficient to vary") { |value| options[:factor] = value }
+  opts.on("--attempt NUMBER", Integer, "Attempt snapshot for challenge (default 1)") { |value| options[:attempt] = value }
+  opts.on("--challenge-output PATH", "Optional counterfactual JSON, never changes provider rules") { |value| options[:challenge_output] = value }
+  opts.on("--human", "Short Russian challenge explanation instead of JSON on stdout") { options[:human] = true }
+  opts.on("-h", "--help") { puts opts; exit 0 }
+end
+parser.parse!(ARGV)
+options[:queue] = PulseProof::InputLocator.queue(root: ROOT, explicit: options[:queue]) unless %w[stream lab learn-lab plan-lab challenge].include?(command)
+
+def runner(options, outcome_model = nil)
+  PulseProof::Runner.new(
+    providers_path: options[:providers],
+    queue_path: options[:queue],
+    history_path: options[:history],
+    profile_path: options[:policy],
+    outcome_model: outcome_model,
+    simulation_mode: options[:simulation_mode]
+  )
+end
+
+begin
+  case command
+  when "challenge"
+    id = ARGV.shift
+    raise PulseProof::InputError, "challenge requires operation_id and --prefer PROVIDER" unless id && options[:prefer]
+    report = PulseProof::InputLoader.json(options[:report])
+    proof = report.fetch("proof_capsules", {})[id]
+    raise PulseProof::InputError, "operation proof not found: #{id}" unless proof
+    attempt = options.fetch(:attempt, 1)
+    raise PulseProof::InputError, "attempt must be positive" unless attempt > 0
+    ranking = proof.fetch("candidate_rankings", [])[attempt - 1]
+    frontier = ranking && ranking.first && ranking.first.dig("outcome_plan", "evaluated_frontier")
+    model = ranking && ranking.first && ranking.first.dig("outcome_plan", "cascade_model")
+    raise PulseProof::InputError, "no planner frontier for this attempt; generate a planner report first" unless frontier
+    snapshot = proof.fetch("attempt_snapshots")[attempt - 1].fetch("snapshot")
+    PulseProof::PlanVerifier.verify!(proof, snapshot.fetch("policy").fetch("fallback_provider", "spacepayments"))
+    result = PulseProof::PolicyChallenge.new(frontier: frontier, model: model, weights: snapshot.fetch("policy").fetch("outcome_planner").fetch("weights"))
+      .call(prefer: options[:prefer], factor: options.fetch(:factor, "count_potential_change"))
+    result["operation_id"] = id
+    result["attempt"] = attempt
+    result["snapshot_hash"] = proof.fetch("attempt_snapshots")[attempt - 1]["snapshot_hash"]
+    result["snapshot_certificate_verified"] = true
+    PulseProof::OutputWriter.json(options[:challenge_output], result) if options[:challenge_output]
+    puts(options[:human] ? PulseProof::ChallengePresenter.new(result: result).call : JSON.pretty_generate(result))
+  when "plan-lab"
+    document = PulseProof::InputLoader.validate_provider_document!(PulseProof::InputLoader.json(options[:providers]))
+    result = PulseProof::PlannerLab.new(providers_document: document,
+      profile: PulseProof::InputLoader.json(File.join(ROOT, "config/planner.json")),
+      baseline_profile: PulseProof::InputLoader.json(File.join(ROOT, "config/balanced.json")),
+      adaptive_profile: PulseProof::InputLoader.json(File.join(ROOT, "config/adaptive.json")),
+      seeds: options.fetch(:lab_seeds, [11, 37, 91])).call
+    destination = options[:lab_output] || File.join(ROOT, "outputs/planner-lab.json")
+    PulseProof::OutputWriter.json(destination, result)
+    puts "SYNTHETIC PLANNER LAB — four policies, five scenarios, selected feedback only"
+    result["summary"].each do |scenario, arms|
+      puts scenario
+      arms.each { |name,row| puts "  #{name}: first success #{row['first_attempt_approval_pct']}%; attempts #{row['mean_attempts']}; final count error #{row['count_l1_pp']} pp; fallback #{row['fallback_count']}" }
+    end
+    puts "Report: #{destination}"
+  when "learn-lab"
+    document = PulseProof::InputLoader.validate_provider_document!(PulseProof::InputLoader.json(options[:providers]))
+    policy = PulseProof::InputLoader.validate_profile!(PulseProof::InputLoader.json(File.join(ROOT, "config/adaptive.json")), document)
+    baseline = PulseProof::InputLoader.json(File.join(ROOT, "config/balanced.json"))
+    result = PulseProof::AdaptiveLab.new(providers_document: document, profile: policy, baseline_profile: baseline,
+      seeds: options.fetch(:lab_seeds, [11, 37, 91])).call
+    destination = options[:lab_output] || File.join(ROOT, "outputs/adaptive-lab.json")
+    PulseProof::OutputWriter.json(destination, result)
+    puts "SYNTHETIC LEARNING LAB — paired seeds, hidden response changes, no real payout calls"
+    result["summary"].each do |scenario, row|
+      puts "#{scenario}: first-attempt approval delta #{row['mean_first_attempt_delta_pp']} pp; seed range #{row['min_seed_delta_pp']}..#{row['max_seed_delta_pp']}; target error delta #{row['mean_target_error_delta_pp']} pp"
+      puts "  versus original balanced: first-attempt #{row['mean_first_attempt_delta_vs_balanced_pp']} pp; target error #{row['mean_target_error_delta_vs_balanced_pp']} pp"
+    end
+    puts "Report: #{destination}"
+  when "lab"
+    document = PulseProof::InputLoader.validate_provider_document!(PulseProof::InputLoader.json(options[:providers]))
+    policy = PulseProof::InputLoader.validate_profile!(PulseProof::InputLoader.json(options[:policy]), document)
+    result = PulseProof::CapacityLab.new(providers_document: document,
+      history: PulseProof::InputLoader.history(options[:history]), baseline_profile: policy).call
+    destination = options[:lab_output] || File.join(ROOT, "outputs/capacity-lab.json")
+    PulseProof::OutputWriter.json(destination, result)
+    puts "SYNTHETIC CAPACITY LAB — no real funds, no hidden queue, approved simulator outcomes"
+    puts "Cases searched: #{result['searched_cases']}"
+    if result["found"] == false
+      puts result["conclusion"]
+    else
+      puts "Stress snapshot: #{result['capacity_change']}"
+      %w[exclusive_payment_arrives exclusive_payment_never_arrives].each do |scenario|
+        row = result.fetch(scenario)
+        puts "#{scenario}: fallback #{row['baseline']['fallback_count']} → #{row['guarded']['fallback_count']}; count L1 #{row['baseline']['count_l1_pp_external_targets']} → #{row['guarded']['count_l1_pp_external_targets']} pp"
+        row["trace"].each do |item|
+          op = item["operation"]
+          puts "  #{op['operation_id']} #{op['amount']} RUB #{op['bank']}: #{item['baseline_provider']} → #{item['guarded_provider']} (#{item['guarded_reason']})"
+        end
+      end
+      puts "Same prefix without looking at suffix: #{result['prefix_independent_of_suffix']}"
+    end
+    puts "Report: #{destination}"
+  when "stream"
+    profile = PulseProof::InputLoader.json(options[:policy])
+    scripts = options[:outcomes] ? PulseProof::InputLoader.json(options[:outcomes]) : {}
+    session = PulseProof::RuntimeSession.new(providers_document: PulseProof::InputLoader.json(options[:providers]),
+      profile: profile, history: PulseProof::InputLoader.history(options[:history]),
+      outcome_model: PulseProof::OutcomeModel.new(mode: profile.fetch("outcome_mode", "approve"), scripts: scripts))
+    warn "Streaming simulator; in-memory state, no external payout calls. One JSON event per line."
+    $stdout.sync = true
+    $stdin.each_line.with_index(1) do |line, number|
+      next if line.strip.empty?
+      begin
+        puts JSON.generate(session.process(JSON.parse(line)))
+      rescue JSON::ParserError, PulseProof::Error => error
+        warn "line #{number}: #{error.message}"
+        exit 1
+      end
+    end
+  when "run", "submit"
+    if command == "submit" && !PulseProof::InputLocator.test_queue?(options[:queue])
+      raise PulseProof::InputError, "stopcode queue not found; expected operations_queue_test.json in repository root (use `run` for the public sample)"
+    end
+    result = runner(options).run
+    PulseProof::OutputWriter.json(options[:decisions], result.decisions)
+    PulseProof::OutputWriter.json(options[:report], result.report)
+    if command == "submit"
+      PulseProof::StrictValidator.new(
+        queue: PulseProof::InputLoader.json(options[:queue]),
+        providers_document: PulseProof::InputLoader.json(options[:providers]),
+        decisions: result.decisions,
+        report: result.report
+      ).validate!
+    end
+    puts "PulseProof #{PulseProof::VERSION}: routed #{result.decisions.length} operations"
+    puts "queue:     #{options[:queue]}#{PulseProof::InputLocator.test_queue?(options[:queue]) ? ' [STOPCODE TEST]' : ' [PUBLIC SAMPLE]'}"
+    puts "decisions: #{options[:decisions]}"
+    puts "report:    #{options[:report]}"
+    puts "status:    GENERATED_LOCALLY — Git commit and remote publication NOT verified" if command == "submit"
+  when "validate"
+    queue = PulseProof::InputLoader.validate_queue!(PulseProof::InputLoader.json(options[:queue]))
+    providers = PulseProof::InputLoader.validate_provider_document!(PulseProof::InputLoader.json(options[:providers]))
+    profile = PulseProof::InputLoader.validate_profile!(PulseProof::InputLoader.json(options[:policy]), providers)
+    decisions = PulseProof::InputLoader.json(options[:decisions])
+    report = PulseProof::InputLoader.json(options[:report])
+    PulseProof::StrictValidator.new(
+      queue: queue,
+      providers_document: providers,
+      decisions: decisions,
+      report: report,
+      fallback_provider: profile.fetch("fallback_provider", "spacepayments")
+    ).validate!
+    puts "strict validation passed: #{decisions.length} decisions"
+  when "demo"
+    primary = runner(options).run
+    scripts = {
+      "op_106" => [
+        { "result" => "expired", "latency_sec" => 181, "resolution" => "cancelled" },
+        { "result" => "approved", "latency_sec" => 29 }
+      ]
+    }
+    chaos_model = PulseProof::OutcomeModel.new(mode: "approve", scripts: scripts)
+    chaos = runner(options, chaos_model).run
+    queue = PulseProof::InputLoader.json(options[:queue])
+    providers = PulseProof::InputLoader.json(options[:providers])
+    payload = PulseProof::DemoExporter.new(
+      queue: queue,
+      providers_document: providers,
+      primary_result: primary,
+      chaos_result: chaos
+    ).build
+    PulseProof::OutputWriter.json(options[:demo], payload)
+    puts "demo data: #{options[:demo]}"
+  when "explain"
+    operation_id = ARGV.shift
+    decisions = PulseProof::InputLoader.json(options[:decisions])
+    report = PulseProof::InputLoader.json(options[:report])
+    if operation_id.nil?
+      puts "Available operations: #{decisions.map { |row| row['operation_id'] }.join(', ')}"
+      exit 0
+    end
+    decision = decisions.find { |row| row["operation_id"] == operation_id }
+    raise PulseProof::InputError, "operation not found in decisions: #{operation_id}" unless decision
+    proof = report.fetch("proof_capsules", {})[operation_id]
+    if proof
+      fallback = proof.dig("attempt_snapshots", 0, "snapshot", "policy", "fallback_provider") || "spacepayments"
+      PulseProof::PlanVerifier.verify!(proof, fallback)
+    end
+    puts PulseProof::ExplanationPresenter.new(decision: decision, proof: proof).call
+  else
+    warn "unknown command: #{command}"
+    warn parser
+    exit 2
+  end
+rescue PulseProof::Error => e
+  warn "PulseProof error: #{e.message}"
+  exit 1
+end

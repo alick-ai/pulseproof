@@ -1,0 +1,26 @@
+{
+  "profile": "cascade",
+  "selection_mode": "cascade",
+  "outcome_mode": "approve",
+  "fallback_provider": "spacepayments",
+  "traffic_debt_bound": 4.0,
+  "volume_debt_bound": 4.0,
+  "recovery_rate": 0.75,
+  "history_prior_strength": 12,
+  "latency_timeout_sec": 180,
+  "weights": {
+    "count": 1.0,
+    "volume": 0.8,
+    "conversion": 0.0,
+    "load": 0.0,
+    "margin": 0.0,
+    "priority": 1.0,
+    "amount_fit": 0.0,
+    "turnover_min": 0.0
+  },
+  "volume_targets": {
+    "vipay": 45,
+    "payflow": 10,
+    "quickpay": 45
+  }
+}

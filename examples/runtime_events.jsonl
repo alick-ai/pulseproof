@@ -1,0 +1,6 @@
+{"type":"operation","operation":{"operation_id":"runtime_a","created_at":"2026-07-30T09:01:00+03:00","amount":10000,"bank":"sberbank"}}
+{"type":"operation","operation":{"operation_id":"runtime_b","created_at":"2026-07-30T09:05:00+03:00","amount":10000,"bank":"sberbank"}}
+{"type":"provider_update","provider":"payflow","changes":{"status":"inactive"},"at":"2026-07-30T09:06:00+03:00"}
+{"type":"status","operation_id":"runtime_a","provider":"vipay","attempt":1,"status":"cancelled","event_id":"cancel-a1","at":"2026-07-30T09:10:00+03:00"}
+{"type":"status","operation_id":"runtime_a","provider":"vipay","attempt":1,"status":"approved","event_id":"stale-a1","at":"2026-07-30T09:11:00+03:00"}
+{"type":"report"}

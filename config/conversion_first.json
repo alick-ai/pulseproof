@@ -1,0 +1,26 @@
+{
+  "profile": "conversion_first",
+  "selection_mode": "conversion_first",
+  "outcome_mode": "approve",
+  "fallback_provider": "spacepayments",
+  "traffic_debt_bound": 4.0,
+  "volume_debt_bound": 4.0,
+  "recovery_rate": 0.75,
+  "history_prior_strength": 12,
+  "latency_timeout_sec": 180,
+  "weights": {
+    "count": 1.0,
+    "volume": 0.8,
+    "conversion": 1.0,
+    "load": 0.25,
+    "margin": 0.10,
+    "priority": 0.05,
+    "amount_fit": 0.05,
+    "turnover_min": 0.05
+  },
+  "volume_targets": {
+    "vipay": 45,
+    "payflow": 10,
+    "quickpay": 45
+  }
+}

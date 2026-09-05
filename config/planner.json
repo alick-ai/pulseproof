@@ -1,0 +1,39 @@
+{
+  "profile": "outcome_planner",
+  "selection_mode": "weighted_sum",
+  "outcome_mode": "deterministic",
+  "fallback_provider": "spacepayments",
+  "traffic_debt_bound": 4.0,
+  "volume_debt_bound": 4.0,
+  "recovery_rate": 0.75,
+  "conversion_guardrail": 0.0,
+  "history_prior_strength": 12,
+  "latency_timeout_sec": 180,
+  "weights": { "count": 1.0, "volume": 0.8, "conversion": 1.0, "load": 0.15, "margin": 0.10, "priority": 0.02, "amount_fit": 0.05, "turnover_min": 0.08 },
+  "amount_preferences": {
+    "payflow": { "min": 500, "max": 50000 },
+    "vipay": { "min": 50001, "max": 100000 },
+    "quickpay": { "min": 100001, "max": 200000 }
+  },
+  "adaptive_learning": {
+    "enabled": true, "learn_from_outcomes": true, "two_speed": true,
+    "window_size": 40, "half_life_sec": 300, "prior_strength": 8,
+    "history_half_life_sec": 604800, "history_snapshot_strength": 8,
+    "minimum_evidence": 6, "minimum_drop": 0.10, "uncertainty_multiplier": 1.5,
+    "amount_bands": [1000, 5000, 10000, 50000, 100000], "probe_every": 0
+  },
+  "outcome_planner": {
+    "enabled": true, "uncertainty_haircut": 0.0,
+    "pending_probabilities": {}, "pending_hold_sec": 180,
+    "weights": {
+      "count_potential_change": 0.6, "volume_potential_change": 0.3,
+      "attempts": 1.0, "latency_sec": 0.002, "pending_ruble_seconds": 0.0000001,
+      "unresolved_or_failed_probability": 2.0, "fallback_probability": 1.0,
+      "scarcity_slots": 0.5, "business_factors": 0.2
+    },
+    "opportunity": {
+      "enabled": true, "minimum_samples": 10, "horizon_operations": 12,
+      "arrival_interval_sec": 10, "repair_steps_rub": [1000, 10000, 50000, 100000]
+    }
+  }
+}

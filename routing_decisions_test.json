@@ -1,0 +1,282 @@
+[
+  {
+    "operation_id": "op_101",
+    "selected_provider": "vipay",
+    "attempts": [
+      {
+        "provider": "vipay",
+        "decision": "selected",
+        "reason": "lowest_bounded_goal_regret",
+        "details": "regret=0.15; secondary=0.40547035; conversion_penalty=0.168485; load_penalty=0.4; amount_fit_penalty=0.700006; turnover_min_penalty=1.0; runner_up=payflow@0.1625",
+        "result": "approved",
+        "latency_sec": 38.0
+      },
+      {
+        "provider": "payflow",
+        "decision": "skipped",
+        "reason": "outranked_by_policy",
+        "details": "regret=0.1625; secondary=0.3202274; conversion_penalty=0.276364; load_penalty=0.25; amount_fit_penalty=0.0; turnover_min_penalty=1.0"
+      },
+      {
+        "provider": "quickpay",
+        "decision": "skipped",
+        "reason": "outranked_by_policy",
+        "details": "regret=0.1875; secondary=0.35162852; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.8500015; turnover_min_penalty=1.0"
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 38.0
+  },
+  {
+    "operation_id": "op_102",
+    "selected_provider": "payflow",
+    "attempts": [
+      {
+        "provider": "vipay",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "alfa is not allowed"
+      },
+      {
+        "provider": "payflow",
+        "decision": "selected",
+        "reason": "lowest_bounded_goal_regret",
+        "details": "regret=0.125; secondary=0.3202274; conversion_penalty=0.276364; load_penalty=0.25; amount_fit_penalty=0.0; turnover_min_penalty=1.0; runner_up=quickpay@0.175",
+        "result": "approved",
+        "latency_sec": 52.0
+      },
+      {
+        "provider": "quickpay",
+        "decision": "skipped",
+        "reason": "outranked_by_policy",
+        "details": "regret=0.175; secondary=0.31862885; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.5200048; turnover_min_penalty=1.0"
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 52.0
+  },
+  {
+    "operation_id": "op_103",
+    "selected_provider": "quickpay",
+    "attempts": [
+      {
+        "provider": "vipay",
+        "decision": "skipped",
+        "reason": "amount_exceeds_limit",
+        "details": "150000 > 100000"
+      },
+      {
+        "provider": "payflow",
+        "decision": "skipped",
+        "reason": "amount_exceeds_limit",
+        "details": "150000 > 50000"
+      },
+      {
+        "provider": "quickpay",
+        "decision": "selected",
+        "reason": "only_eligible_provider",
+        "details": "regret=0.0625; secondary=0.26662837; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.0; turnover_min_penalty=1.0",
+        "result": "approved",
+        "latency_sec": 29.0
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 29.0
+  },
+  {
+    "operation_id": "op_104",
+    "selected_provider": "quickpay",
+    "attempts": [
+      {
+        "provider": "vipay",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "gazprombank is not allowed"
+      },
+      {
+        "provider": "payflow",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "gazprombank is not allowed"
+      },
+      {
+        "provider": "quickpay",
+        "decision": "selected",
+        "reason": "only_eligible_provider",
+        "details": "regret=0.25; secondary=0.3636284; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.9700003; turnover_min_penalty=1.0",
+        "result": "approved",
+        "latency_sec": 29.0
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 29.0
+  },
+  {
+    "operation_id": "op_105",
+    "selected_provider": "vipay",
+    "attempts": [
+      {
+        "provider": "payflow",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "tinkoff is not allowed"
+      },
+      {
+        "provider": "vipay",
+        "decision": "selected",
+        "reason": "lowest_bounded_goal_regret",
+        "details": "regret=0.25; secondary=0.38547075; conversion_penalty=0.168485; load_penalty=0.4; amount_fit_penalty=0.50001; turnover_min_penalty=1.0; runner_up=quickpay@0.4375",
+        "result": "approved",
+        "latency_sec": 38.0
+      },
+      {
+        "provider": "quickpay",
+        "decision": "skipped",
+        "reason": "outranked_by_policy",
+        "details": "regret=0.4375; secondary=0.34162862; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.7500025; turnover_min_penalty=1.0"
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 38.0
+  },
+  {
+    "operation_id": "op_106",
+    "selected_provider": "vipay",
+    "attempts": [
+      {
+        "provider": "payflow",
+        "decision": "skipped",
+        "reason": "amount_exceeds_limit",
+        "details": "52000 > 50000"
+      },
+      {
+        "provider": "vipay",
+        "decision": "selected",
+        "reason": "lowest_bounded_goal_regret",
+        "details": "regret=0.15; secondary=0.33546975; conversion_penalty=0.168485; load_penalty=0.4; amount_fit_penalty=0.0; turnover_min_penalty=1.0; runner_up=quickpay@0.375",
+        "result": "approved",
+        "latency_sec": 38.0
+      },
+      {
+        "provider": "quickpay",
+        "decision": "skipped",
+        "reason": "outranked_by_policy",
+        "details": "regret=0.375; secondary=0.31462889; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.4800052; turnover_min_penalty=1.0"
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 38.0
+  },
+  {
+    "operation_id": "op_107",
+    "selected_provider": "payflow",
+    "attempts": [
+      {
+        "provider": "vipay",
+        "decision": "skipped",
+        "reason": "amount_below_minimum",
+        "details": "800 < 1000"
+      },
+      {
+        "provider": "quickpay",
+        "decision": "skipped",
+        "reason": "amount_below_minimum",
+        "details": "800 < 1000"
+      },
+      {
+        "provider": "payflow",
+        "decision": "selected",
+        "reason": "only_eligible_provider",
+        "details": "regret=0.1125; secondary=0.3202274; conversion_penalty=0.276364; load_penalty=0.25; amount_fit_penalty=0.0; turnover_min_penalty=1.0",
+        "result": "approved",
+        "latency_sec": 52.0
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 52.0
+  },
+  {
+    "operation_id": "op_108",
+    "selected_provider": "quickpay",
+    "attempts": [
+      {
+        "provider": "vipay",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "raiffeisen is not allowed"
+      },
+      {
+        "provider": "payflow",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "raiffeisen is not allowed"
+      },
+      {
+        "provider": "quickpay",
+        "decision": "selected",
+        "reason": "only_eligible_provider",
+        "details": "regret=0.25; secondary=0.32462879; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.5800042; turnover_min_penalty=1.0",
+        "result": "approved",
+        "latency_sec": 29.0
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 29.0
+  },
+  {
+    "operation_id": "op_109",
+    "selected_provider": "vipay",
+    "attempts": [
+      {
+        "provider": "payflow",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "vtb is not allowed"
+      },
+      {
+        "provider": "vipay",
+        "decision": "selected",
+        "reason": "lowest_bounded_goal_regret",
+        "details": "regret=0.25; secondary=0.41547015; conversion_penalty=0.168485; load_penalty=0.4; amount_fit_penalty=0.800004; turnover_min_penalty=1.0; runner_up=quickpay@0.4375",
+        "result": "approved",
+        "latency_sec": 38.0
+      },
+      {
+        "provider": "quickpay",
+        "decision": "skipped",
+        "reason": "outranked_by_policy",
+        "details": "regret=0.4375; secondary=0.35662847; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.900001; turnover_min_penalty=1.0"
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 38.0
+  },
+  {
+    "operation_id": "op_110",
+    "selected_provider": "payflow",
+    "attempts": [
+      {
+        "provider": "vipay",
+        "decision": "skipped",
+        "reason": "bank_not_in_list",
+        "details": "alfa is not allowed"
+      },
+      {
+        "provider": "payflow",
+        "decision": "selected",
+        "reason": "lowest_bounded_goal_regret",
+        "details": "regret=0.1875; secondary=0.3202274; conversion_penalty=0.276364; load_penalty=0.25; amount_fit_penalty=0.0; turnover_min_penalty=1.0; runner_up=quickpay@0.375",
+        "result": "approved",
+        "latency_sec": 52.0
+      },
+      {
+        "provider": "quickpay",
+        "decision": "skipped",
+        "reason": "outranked_by_policy",
+        "details": "regret=0.375; secondary=0.32662877; conversion_penalty=0.298462; load_penalty=0.06666667; amount_fit_penalty=0.600004; turnover_min_penalty=1.0"
+      }
+    ],
+    "simulated_result": "approved",
+    "latency_sec": 52.0
+  }
+]
