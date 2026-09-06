@@ -18,6 +18,8 @@ module PulseProof
         "total_operations" => @decisions.length,
         "distribution" => distribution,
         "volume_distribution" => volume_distribution,
+        "volume_goal_status" => goal_reporting.volume_status,
+        "unavailable_goal_handling" => goal_reporting.unavailable_status,
         "skip_reasons" => skip_reasons,
         "deviation_drivers" => deviation_drivers,
         "provider_outcomes" => provider_outcomes,
@@ -37,6 +39,11 @@ module PulseProof
     end
 
     private
+
+    def goal_reporting
+      @goal_reporting ||= GoalReporting.new(providers: @providers, profile: @profile,
+        controller: @router.controller, proofs: @router.proofs, distribution: distribution)
+    end
 
     def outcome_planning
       return { "enabled" => false } unless @router.outcome_planner
@@ -95,13 +102,14 @@ module PulseProof
           sum + operation_by_id.fetch(decision["operation_id"]).fetch("amount").to_f
         end
         share = total.zero? ? 0.0 : amount * 100.0 / total
-        target = @profile.fetch("volume_targets", {}).fetch(name, @providers.fetch(name).target_volume_pct)
+        metadata = goal_reporting.volume_row(name)
+        target = metadata.fetch("effective_target_pct")
         out[name] = {
           "amount" => amount.round(2),
           "share_pct" => share.round(2),
           "target_pct" => target,
           "deviation_pp" => target.nil? ? nil : (share - target.to_f).round(2)
-        }
+        }.merge(metadata)
       end
     end
 
@@ -171,9 +179,8 @@ module PulseProof
                    FeasibilityEnvelope.new(@queue, @providers_document, fallback_provider: @profile.fetch("fallback_provider", "spacepayments")).call
                  end
       raw = deviations.values.inject(0.0) { |sum, row| sum + row["deviation_pp"].abs }.round(2)
-      volume_raw = volume_distribution.values.inject(0.0) do |sum, row|
-        sum + (row["deviation_pp"] || 0.0).abs
-      end.round(2)
+      volume_deviations = volume_distribution.values.map { |row| row["deviation_pp"] }.compact
+      volume_raw = volume_deviations.empty? ? nil : volume_deviations.inject(0.0) { |sum, value| sum + value.abs }.round(2)
       minimum = envelope["minimum_l1_deviation_pp"]
       {
         "raw_target_deviation_l1_pp" => raw,

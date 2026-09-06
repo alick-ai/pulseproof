@@ -32,25 +32,244 @@
       "amount": 102000.0,
       "share_pct": 26.44,
       "target_pct": null,
-      "deviation_pp": null
+      "deviation_pp": null,
+      "configured_target_pct": null,
+      "target_source": "providers.volume_share_pct",
+      "effective_target_pct": null,
+      "target_status": "disabled",
+      "null_reason": "volume_target_not_provided"
     },
     "payflow": {
       "amount": 88800.0,
       "share_pct": 23.02,
       "target_pct": null,
-      "deviation_pp": null
+      "deviation_pp": null,
+      "configured_target_pct": null,
+      "target_source": "providers.volume_share_pct",
+      "effective_target_pct": null,
+      "target_status": "disabled",
+      "null_reason": "volume_target_not_provided"
     },
     "quickpay": {
       "amount": 195000.0,
       "share_pct": 50.54,
       "target_pct": null,
-      "deviation_pp": null
+      "deviation_pp": null,
+      "configured_target_pct": null,
+      "target_source": "providers.volume_share_pct",
+      "effective_target_pct": null,
+      "target_status": "disabled",
+      "null_reason": "volume_target_not_provided"
     },
     "spacepayments": {
       "amount": 0.0,
       "share_pct": 0.0,
       "target_pct": null,
-      "deviation_pp": null
+      "deviation_pp": null,
+      "configured_target_pct": null,
+      "target_source": "fallback_policy",
+      "effective_target_pct": null,
+      "target_status": "disabled",
+      "null_reason": "fallback_excluded_from_soft_targets"
+    }
+  },
+  "volume_goal_status": {
+    "status": "disabled_no_positive_targets",
+    "explanation": "Цель объёма отключена: положительные цели не заданы. null означает отсутствие цели, а не отсутствие механизма; фактические суммы и доли рассчитаны.",
+    "target_source": "providers.volume_share_pct",
+    "configured_external_targets": {
+    },
+    "effective_controller_targets_pct": {
+    },
+    "controller_weight": 0.8,
+    "selection_mode": "balanced_minimax",
+    "planner_enabled": false,
+    "planner_volume_weight": null,
+    "scope": "Targets used at the latest operation accrual (or initial controller before any operation). Configured volume_targets replaces provider volume_share_pct; omitted external providers then receive zero. An empty/zero override disables the goal. A configured weight alone does not activate an absent target or prove a change of winner.",
+    "attribution": "final selected_provider, including provisional pending attribution; denominator is total amount of this queue, not historical or daily turnover",
+    "capability_example": {
+      "profile": "config/volume_demo.json",
+      "scope": "Illustrative targets, not organizer targets and not applied to this run unless this profile is selected.",
+      "command": "bin/pulseproof run --policy config/volume_demo.json --queue data/operations_queue_10.json --decisions outputs/volume-demo-decisions.json --report outputs/volume-demo-report.json",
+      "causal_evidence_command": "rake evidence",
+      "causal_evidence_case": "soft_volume",
+      "documentation": "docs/GOAL_REPORTING.md"
+    }
+  },
+  "unavailable_goal_handling": {
+    "explanation": "Недоступность здесь означает запрет для конкретной операции (сумма, банк, лимит или статус), а не обязательно сбой провайдера. Выбор идёт среди допустимых; при их исчерпании применяется fallback. Невыполнимая сейчас доля не отменяет hard-правила.",
+    "redistribute_unavailable": false,
+    "target_handling": "Исходные цели сохранены. Автоматическое перераспределение целей выключено; долг накапливается с ограничением, итоговый маршрут учитывается за фактически выбранным провайдером.",
+    "count_debt_bound": 4.0,
+    "recovery_rate": 0.75,
+    "recovery_rule": "effective_count_debt = min(bounded_count_debt, max(other eligible bounded debts) + recovery_rate); with no other candidate no reduction is required. This limits ranking pressure, not requests per second or guaranteed final shares.",
+    "scope": "Ineligibility and recovery entries count the first evaluation once per operation. Recovery rankings count each recorded attempt. Only the first three examples are included; complete evidence is in proof_capsules. Failed attempts alone are not counted as hard ineligibility. A recovery flag is not evidence that the cap reduced debt or changed the winner.",
+    "evaluated_operations": 10,
+    "providers": {
+      "vipay": {
+        "ineligible_operations": 6,
+        "reason_counts": {
+          "bank_not_in_list": 4,
+          "amount_exceeds_limit": 1,
+          "amount_below_minimum": 1
+        },
+        "exclusion_examples": [
+          {
+            "operation_id": "op_102",
+            "reason": "bank_not_in_list",
+            "final_selected_provider": "payflow"
+          },
+          {
+            "operation_id": "op_103",
+            "reason": "amount_exceeds_limit",
+            "final_selected_provider": "quickpay"
+          },
+          {
+            "operation_id": "op_104",
+            "reason": "bank_not_in_list",
+            "final_selected_provider": "quickpay"
+          }
+        ],
+        "business_count_entitlement_while_ineligible": 2.4,
+        "final_selected_provider_counts_after_exclusion": {
+          "payflow": 3,
+          "quickpay": 3
+        },
+        "recovery_entries": 2,
+        "recovery_rankings": 2,
+        "recovery_cap_reductions": 2,
+        "recovery_examples": [
+          {
+            "operation_id": "op_105",
+            "attempt": 1,
+            "count_debt_before": 1.0,
+            "effective_count_debt": 0.0,
+            "cap_reduced_debt": true,
+            "selected_on_attempt": true
+          },
+          {
+            "operation_id": "op_109",
+            "attempt": 1,
+            "count_debt_before": 0.6,
+            "effective_count_debt": 0.0,
+            "cap_reduced_debt": true,
+            "selected_on_attempt": true
+          }
+        ],
+        "final_distribution": {
+          "count": 4,
+          "share_pct": 40.0,
+          "target_pct": 40.0,
+          "deviation_pp": 0.0
+        },
+        "final_raw_count_debt": 0.0,
+        "final_bounded_count_debt": 0.0,
+        "final_unavailable_streak": 1,
+        "final_recovering": false,
+        "explanation": "Недопустим для 6 операций; возвратов в допустимые 2; ограничение восстановления уменьшило долг в 2 ранжированиях. Исходное отклонение от цели сохранено."
+      },
+      "payflow": {
+        "ineligible_operations": 6,
+        "reason_counts": {
+          "amount_exceeds_limit": 2,
+          "bank_not_in_list": 4
+        },
+        "exclusion_examples": [
+          {
+            "operation_id": "op_103",
+            "reason": "amount_exceeds_limit",
+            "final_selected_provider": "quickpay"
+          },
+          {
+            "operation_id": "op_104",
+            "reason": "bank_not_in_list",
+            "final_selected_provider": "quickpay"
+          },
+          {
+            "operation_id": "op_105",
+            "reason": "bank_not_in_list",
+            "final_selected_provider": "vipay"
+          }
+        ],
+        "business_count_entitlement_while_ineligible": 2.1,
+        "final_selected_provider_counts_after_exclusion": {
+          "quickpay": 3,
+          "vipay": 3
+        },
+        "recovery_entries": 2,
+        "recovery_rankings": 2,
+        "recovery_cap_reductions": 1,
+        "recovery_examples": [
+          {
+            "operation_id": "op_107",
+            "attempt": 1,
+            "count_debt_before": 1.45,
+            "effective_count_debt": 1.45,
+            "cap_reduced_debt": false,
+            "selected_on_attempt": true
+          },
+          {
+            "operation_id": "op_110",
+            "attempt": 1,
+            "count_debt_before": 1.5,
+            "effective_count_debt": 0.25,
+            "cap_reduced_debt": true,
+            "selected_on_attempt": true
+          }
+        ],
+        "final_distribution": {
+          "count": 3,
+          "share_pct": 30.0,
+          "target_pct": 35.0,
+          "deviation_pp": -5.0
+        },
+        "final_raw_count_debt": 0.5,
+        "final_bounded_count_debt": 0.5,
+        "final_unavailable_streak": 0,
+        "final_recovering": true,
+        "explanation": "Недопустим для 6 операций; возвратов в допустимые 2; ограничение восстановления уменьшило долг в 1 ранжированиях. Исходное отклонение от цели сохранено."
+      },
+      "quickpay": {
+        "ineligible_operations": 1,
+        "reason_counts": {
+          "amount_below_minimum": 1
+        },
+        "exclusion_examples": [
+          {
+            "operation_id": "op_107",
+            "reason": "amount_below_minimum",
+            "final_selected_provider": "payflow"
+          }
+        ],
+        "business_count_entitlement_while_ineligible": 0.25,
+        "final_selected_provider_counts_after_exclusion": {
+          "payflow": 1
+        },
+        "recovery_entries": 1,
+        "recovery_rankings": 1,
+        "recovery_cap_reductions": 0,
+        "recovery_examples": [
+          {
+            "operation_id": "op_108",
+            "attempt": 1,
+            "count_debt_before": 0.0,
+            "effective_count_debt": 0.0,
+            "cap_reduced_debt": false,
+            "selected_on_attempt": true
+          }
+        ],
+        "final_distribution": {
+          "count": 3,
+          "share_pct": 30.0,
+          "target_pct": 25.0,
+          "deviation_pp": 5.0
+        },
+        "final_raw_count_debt": -0.5,
+        "final_bounded_count_debt": -0.5,
+        "final_unavailable_streak": 0,
+        "final_recovering": false,
+        "explanation": "Недопустим для 1 операций; возвратов в допустимые 1; ограничение восстановления уменьшило долг в 0 ранжированиях. Исходное отклонение от цели сохранено."
+      }
     }
   },
   "skip_reasons": {
@@ -165,7 +384,7 @@
   },
   "soft_goal_analysis": {
     "raw_target_deviation_l1_pp": 10.0,
-    "raw_volume_target_deviation_l1_pp": 0.0,
+    "raw_volume_target_deviation_l1_pp": null,
     "controllable_excess_l1_pp": 0.0,
     "post_run_feasibility_envelope": {
       "exact": true,

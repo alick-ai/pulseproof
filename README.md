@@ -157,7 +157,7 @@ rake release
 
 The gate runs the Ruby test suite, generates both submission files, checks them with the strict validator and the official public validator, scans outputs for all sensitive queue values, verifies the Ruby-majority threshold, executes the 31-case requirements evidence, regenerates the demo trace, lints the interface and creates a production build.
 
-Last verified test suite: **197 tests, 6338 assertions, no failures.** It includes a subprocess regression requiring the verified fast generator and standard generator to produce byte-identical decisions and reports. The complete release gate is rerun after every delivery change; its additional checks cover executable requirements evidence 31/31, official public balanced validation 29/29, authored Ruby share 75.0%, privacy, lint and production build. The locale regression suite also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
+Last verified test suite: **209 tests, 6433 assertions, no failures.** It includes a subprocess regression requiring the verified fast generator and standard generator to produce byte-identical decisions and reports, plus 12 report regressions for absent/explicit volume targets and recorded unavailability/recovery. The complete release gate is rerun after every delivery change; its additional checks cover executable requirements evidence 31/31, official public balanced validation 29/29, authored Ruby share 75.53%, privacy, lint and production build. The locale regression suite also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
 
 The normal suite also starts the CLI tests in fresh subprocesses under unset, C, POSIX and UTF-8 locales. UTF-8 file/pipe decoding is explicit in those tests; `Encoding.default_external` is not globally overridden. Reproduce the strict locale check with:
 
@@ -228,6 +228,8 @@ Missing optional provider fields have safe semantics:
 - `spacepayments` is selected only after the external pool is empty or exhausted by confirmed failures.
 
 The default balanced profile does not invent a volume target absent from the provider data. Other profiles contain explicitly illustrative volume targets. Amount bands in balanced follow the task's example, not a discovered business optimum. `redistribute_unavailable: true` is an optional policy for redistributing current entitlement among eligible providers; it is off by default because it changes the business objective. Neither policy erases raw deviation from original targets.
+
+The required report exposes both behaviors near its beginning: `volume_goal_status` explains missing targets, the configured weight and a reproducible illustrative profile; `unavailable_goal_handling` summarizes actual hard exclusions, original debt and recorded recovery-cap reductions per provider. Every volume row includes the source, configured and normalized target, and a reason for `null`. No target means no defined aggregate volume error, rather than an apparent zero error. See [the report walkthrough](docs/GOAL_REPORTING.md), including the volume/count tradeoff and the difference between recovery being enabled and actually reducing debt.
 
 ## Operational boundary
 
