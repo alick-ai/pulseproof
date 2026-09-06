@@ -1,0 +1,104 @@
+{
+  "schema": "pulseproof.policy_review.v1",
+  "status": "RETROSPECTIVE_COMPARISON_VALIDATED",
+  "input_sha256": {
+    "queue": "6acb5cf52e023c2f1590d4073ab48629d6d0e7bf5bcc4cff41de178f602eea17",
+    "providers": "ddcf33dd1b7da40150a2364674c57f426121aae7f72d27f69c917da9b061b182",
+    "history": "97c3b1eb7fdc04bc2053e46ee726845b5f1cc1f8ae137cd84469bc2426403196",
+    "balanced_profile": "c7510989c0e6a001760f0ca4dec218d1ebcec926ab4ca70bc0cb36ab3ac65b85"
+  },
+  "alternative_profile_canonical_sha256": "d183f6acdaf3f3e4c7c9e1e85d46353dba324981d05e94ef4227daa2b1767517",
+  "changed_config_keys": [
+    "profile",
+    "selection_mode"
+  ],
+  "simulation_mode": "approve",
+  "external_provider_calls": false,
+  "changes_submission_policy": false,
+  "changes_submission_artifacts": false,
+  "retrospective": true,
+  "comparison_selected_after_observing_queue_results": true,
+  "held_out_evaluation": false,
+  "contains_operation_ids_or_requisites": false,
+  "policies": {
+    "balanced": {
+      "total_operations": 90,
+      "distribution": {
+        "vipay": {
+          "count": 29,
+          "share_pct": 32.22222222222222,
+          "target_pct": 40.0,
+          "deviation_pp": -7.777777777777779
+        },
+        "payflow": {
+          "count": 9,
+          "share_pct": 10.0,
+          "target_pct": 35.0,
+          "deviation_pp": -25.0
+        },
+        "quickpay": {
+          "count": 48,
+          "share_pct": 53.333333333333336,
+          "target_pct": 25.0,
+          "deviation_pp": 28.333333333333336
+        },
+        "spacepayments": {
+          "count": 4,
+          "share_pct": 4.444444444444445,
+          "target_pct": 0.0,
+          "deviation_pp": 4.444444444444445
+        }
+      },
+      "external_l1_pp_unrounded": 61.111111111111114,
+      "report_external_l1_pp_sum_of_rounded_rows": 61.11,
+      "all_providers_l1_pp_unrounded": 65.55555555555556,
+      "fallback_count": 4,
+      "simulated_approved_count": 90,
+      "strict_validation": "passed"
+    },
+    "balanced_conversion_first": {
+      "total_operations": 90,
+      "distribution": {
+        "vipay": {
+          "count": 31,
+          "share_pct": 34.44444444444444,
+          "target_pct": 40.0,
+          "deviation_pp": -5.555555555555557
+        },
+        "payflow": {
+          "count": 10,
+          "share_pct": 11.11111111111111,
+          "target_pct": 35.0,
+          "deviation_pp": -23.88888888888889
+        },
+        "quickpay": {
+          "count": 45,
+          "share_pct": 50.0,
+          "target_pct": 25.0,
+          "deviation_pp": 25.0
+        },
+        "spacepayments": {
+          "count": 4,
+          "share_pct": 4.444444444444445,
+          "target_pct": 0.0,
+          "deviation_pp": 4.444444444444445
+        }
+      },
+      "external_l1_pp_unrounded": 54.44444444444444,
+      "report_external_l1_pp_sum_of_rounded_rows": 54.45,
+      "all_providers_l1_pp_unrounded": 58.88888888888889,
+      "fallback_count": 4,
+      "simulated_approved_count": 90,
+      "strict_validation": "passed"
+    }
+  },
+  "scope": {
+    "denominator": "all operations in the supplied queue; history is calibration only",
+    "attribution": "final selected_provider, including fallback",
+    "external_l1": "sum of absolute deviations for providers other than fallback; shares use the full queue denominator",
+    "comparison_control": "same inputs, hard rules, weights and explicit approve simulation; only profile label and selection_mode differ",
+    "tradeoff": "conversion_first ranks by conversion, goal regret, load, priority and name; it does not rank by the weighted secondary total, so margin, amount_fit and turnover_min no longer affect that sort key",
+    "interpretation": "observed allocation difference only; no held-out improvement, actual payment success, conversion uplift or global optimality is claimed",
+    "recommendation": "review selection_mode=conversion_first as an operator-approved configuration alternative; retain balanced for this submission"
+  }
+}

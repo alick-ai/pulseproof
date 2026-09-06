@@ -17,6 +17,7 @@ module PulseProof
         "period" => period,
         "total_operations" => @decisions.length,
         "distribution" => distribution,
+        "capacity_explanation" => capacity_explanation,
         "volume_distribution" => volume_distribution,
         "volume_goal_status" => goal_reporting.volume_status,
         "unavailable_goal_handling" => goal_reporting.unavailable_status,
@@ -39,6 +40,13 @@ module PulseProof
     end
 
     private
+
+    def capacity_explanation
+      @capacity_explanation ||= CapacityExplanation.new(queue: @queue, decisions: @decisions,
+        providers_document: @providers_document,
+        fallback_provider: @profile.fetch("fallback_provider", "spacepayments"),
+        snapshot_unchanged: !@router.ledger.event_store.events.any? { |event| event["type"] == "provider_rules_updated" }).build
+    end
 
     def goal_reporting
       @goal_reporting ||= GoalReporting.new(providers: @providers, profile: @profile,
@@ -240,6 +248,7 @@ module PulseProof
       end
       output << "Сохранять timeout как pending reservation до подтвержденного reject/cancel; не запускать двойную выплату"
       output << "Использовать bounded recovery_rate после недоступности провайдера, чтобы избежать burst traffic"
+      output << "Отдельно проверить изменение selection_mode с balanced_minimax на conversion_first: ruby scripts/compare_policies.rb. Сравнение ретроспективное, с теми же hard-правилами и без выдуманных целей объёма; конфигурация сдачи не меняется. Результат и компромиссы: docs/FINAL_REVIEW.md."
       output.uniq
     end
 
@@ -304,6 +313,7 @@ module PulseProof
         "future_operations_visible_to_router" => false,
         "pii_scan_clean" => !Redactor.phone_like?(serialized),
         "decisions_hash" => Canonical.digest(@decisions),
+        "capacity_explanation_schema" => 1,
         "report_rebuildable_from_ledger" => false,
         "ledger_balances_replayable_with_original_inputs" => true,
         "persistence" => "in-memory; exported journal is not a crash-recovery database",

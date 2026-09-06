@@ -430,6 +430,112 @@
           "deviation_pp": 0.0
         }
       },
+      "capacity_explanation": {
+        "status": "explained",
+        "scope": {
+          "changes_routing": false,
+          "uses_completed_queue_for_analysis_only": true,
+          "joint_optimum_certified": false,
+          "individual_ceiling_attainability_certified": false,
+          "ceilings_are_individual_relaxations": true,
+          "starting_in_progress_load_relaxed": true,
+          "rpm_and_competition_relaxed": true,
+          "daily_budget_semantics": "daily_limit_minus_initial_daily_approved; initial_in_progress_is_not_daily_approved",
+          "scope": "unchanged_single_day_snapshot_and_immediate_approved_attempts"
+        },
+        "queue_operations": 10,
+        "interpretation": "Это отдельные верхние границы для каждого провайдера, а не совместно достижимый план и не доказательство минимального суммарного отклонения долей. Анализ завершённой очереди не участвует в выборе маршрутов.",
+        "providers": {
+          "vipay": {
+            "target_operation_count": 4.0,
+            "relaxed_eligible_operations": 4,
+            "individual_count_upper_bound": 4,
+            "individual_share_upper_bound_pct": 40.0,
+            "target_exceeds_individual_upper_bound": false,
+            "final_selected_count": 4,
+            "selected_count_to_individual_ceiling_pct": 100.0,
+            "initial_remaining_daily_amount": 1800000.0,
+            "allocated_queue_amount": 102000.0,
+            "initial_daily_budget_used_pct": 5.666667,
+            "daily_budget_witness": {
+              "currency_unit": "kopeck",
+              "initial_remaining_cents": 180000000,
+              "cheapest_feasible_count": 4,
+              "cheapest_feasible_sum_cents": 10200000,
+              "next_count": null,
+              "next_cheapest_sum_cents": null,
+              "next_count_exceeds_daily_budget": false
+            },
+            "interpretation": "Отдельная верхняя граница не исключает целевую долю; совместная достижимость со всеми остальными провайдерами здесь не доказана."
+          },
+          "payflow": {
+            "target_operation_count": 3.5,
+            "relaxed_eligible_operations": 4,
+            "individual_count_upper_bound": 3,
+            "individual_share_upper_bound_pct": 30.0,
+            "target_exceeds_individual_upper_bound": true,
+            "final_selected_count": 3,
+            "selected_count_to_individual_ceiling_pct": 100.0,
+            "initial_remaining_daily_amount": 100000.0,
+            "allocated_queue_amount": 88800.0,
+            "initial_daily_budget_used_pct": 88.8,
+            "daily_budget_witness": {
+              "currency_unit": "kopeck",
+              "initial_remaining_cents": 10000000,
+              "cheapest_feasible_count": 3,
+              "cheapest_feasible_sum_cents": 5580000,
+              "next_count": 4,
+              "next_cheapest_sum_cents": 10380000,
+              "next_count_exceeds_daily_budget": true
+            },
+            "interpretation": "Целевая доля превышает отдельную верхнюю границу при исходных правилах и дневном остатке; увеличение веса доли само по себе это ограничение не снимет."
+          },
+          "quickpay": {
+            "target_operation_count": 2.5,
+            "relaxed_eligible_operations": 9,
+            "individual_count_upper_bound": 9,
+            "individual_share_upper_bound_pct": 90.0,
+            "target_exceeds_individual_upper_bound": false,
+            "final_selected_count": 3,
+            "selected_count_to_individual_ceiling_pct": 33.333333,
+            "initial_remaining_daily_amount": 6900000.0,
+            "allocated_queue_amount": 195000.0,
+            "initial_daily_budget_used_pct": 2.826087,
+            "daily_budget_witness": {
+              "currency_unit": "kopeck",
+              "initial_remaining_cents": 690000000,
+              "cheapest_feasible_count": 9,
+              "cheapest_feasible_sum_cents": 38500000,
+              "next_count": null,
+              "next_cheapest_sum_cents": null,
+              "next_count_exceeds_daily_budget": false
+            },
+            "interpretation": "Отдельная верхняя граница не исключает целевую долю; совместная достижимость со всеми остальными провайдерами здесь не доказана."
+          },
+          "spacepayments": {
+            "target_operation_count": 0.0,
+            "relaxed_eligible_operations": 10,
+            "individual_count_upper_bound": 10,
+            "individual_share_upper_bound_pct": 100.0,
+            "target_exceeds_individual_upper_bound": false,
+            "final_selected_count": 0,
+            "selected_count_to_individual_ceiling_pct": 0.0,
+            "initial_remaining_daily_amount": null,
+            "allocated_queue_amount": 0.0,
+            "initial_daily_budget_used_pct": null,
+            "daily_budget_witness": {
+              "currency_unit": "kopeck",
+              "initial_remaining_cents": null,
+              "cheapest_feasible_count": 10,
+              "cheapest_feasible_sum_cents": 38580000,
+              "next_count": null,
+              "next_cheapest_sum_cents": null,
+              "next_count_exceeds_daily_budget": false
+            },
+            "interpretation": "Отдельная верхняя граница не исключает целевую долю; совместная достижимость со всеми остальными провайдерами здесь не доказана."
+          }
+        }
+      },
       "volume_distribution": {
         "vipay": {
           "amount": 102000.0,
@@ -944,7 +1050,8 @@
         "payflow: историческая conversion ниже snapshot более чем на 15 п.п. — увеличить weights.conversion или временно выбрать selection_mode=conversion_first",
         "payflow: доля ниже цели на 5.0 п.п.; главный ограничитель bank_not_in_list (4) — сначала изменить соответствующее hard-правило или покрытие, а не усиливать вес traffic",
         "Сохранять timeout как pending reservation до подтвержденного reject/cancel; не запускать двойную выплату",
-        "Использовать bounded recovery_rate после недоступности провайдера, чтобы избежать burst traffic"
+        "Использовать bounded recovery_rate после недоступности провайдера, чтобы избежать burst traffic",
+        "Отдельно проверить изменение selection_mode с balanced_minimax на conversion_first: ruby scripts/compare_policies.rb. Сравнение ретроспективное, с теми же hard-правилами и без выдуманных целей объёма; конфигурация сдачи не меняется. Результат и компромиссы: docs/FINAL_REVIEW.md."
       ],
       "policy": {
         "profile": "balanced",
@@ -1013,6 +1120,7 @@
         "future_operations_visible_to_router": false,
         "pii_scan_clean": true,
         "decisions_hash": "b7cea948e20d31f76f96bb38ebd182a22d942c7f69339f9105d336419c0e0029",
+        "capacity_explanation_schema": 1,
         "report_rebuildable_from_ledger": false,
         "ledger_balances_replayable_with_original_inputs": true,
         "persistence": "in-memory; exported journal is not a crash-recovery database",
@@ -15522,6 +15630,23 @@
           "deviation_pp": 0.0
         }
       },
+      "capacity_explanation": {
+        "status": "not_applicable",
+        "reason": "pending_or_failed_attempts_present",
+        "scope": {
+          "changes_routing": false,
+          "uses_completed_queue_for_analysis_only": true,
+          "joint_optimum_certified": false,
+          "individual_ceiling_attainability_certified": false,
+          "ceilings_are_individual_relaxations": true,
+          "starting_in_progress_load_relaxed": true,
+          "rpm_and_competition_relaxed": true,
+          "daily_budget_semantics": "daily_limit_minus_initial_daily_approved; initial_in_progress_is_not_daily_approved",
+          "scope": "unchanged_single_day_snapshot_and_immediate_approved_attempts"
+        },
+        "providers": {
+        }
+      },
       "volume_distribution": {
         "vipay": {
           "amount": 50000.0,
@@ -16029,7 +16154,8 @@
         "vipay: доля ниже цели на 10.0 п.п.; главный ограничитель bank_not_in_list (4) — сначала изменить соответствующее hard-правило или покрытие, а не усиливать вес traffic",
         "payflow: доля ниже цели на 5.0 п.п.; главный ограничитель bank_not_in_list (4) — сначала изменить соответствующее hard-правило или покрытие, а не усиливать вес traffic",
         "Сохранять timeout как pending reservation до подтвержденного reject/cancel; не запускать двойную выплату",
-        "Использовать bounded recovery_rate после недоступности провайдера, чтобы избежать burst traffic"
+        "Использовать bounded recovery_rate после недоступности провайдера, чтобы избежать burst traffic",
+        "Отдельно проверить изменение selection_mode с balanced_minimax на conversion_first: ruby scripts/compare_policies.rb. Сравнение ретроспективное, с теми же hard-правилами и без выдуманных целей объёма; конфигурация сдачи не меняется. Результат и компромиссы: docs/FINAL_REVIEW.md."
       ],
       "policy": {
         "profile": "balanced",
@@ -16098,6 +16224,7 @@
         "future_operations_visible_to_router": false,
         "pii_scan_clean": true,
         "decisions_hash": "5a627359ceea6ee0cfc619d517d2fac3760249e4865fcd0608c8b81c3e24f9b4",
+        "capacity_explanation_schema": 1,
         "report_rebuildable_from_ledger": false,
         "ledger_balances_replayable_with_original_inputs": true,
         "persistence": "in-memory; exported journal is not a crash-recovery database",
@@ -32343,8 +32470,8 @@
         "title": "Повторяемость",
         "expected": "identical digest",
         "observed": {
-          "first": "be740935b49eac83b2a10822b66f4af814b0fe315770c17d48aab342cd7e4b8b",
-          "second": "be740935b49eac83b2a10822b66f4af814b0fe315770c17d48aab342cd7e4b8b"
+          "first": "096651256a40f522d472d4176bfdf99fbda6976f490eff9244fc57ac5a2f70e2",
+          "second": "096651256a40f522d472d4176bfdf99fbda6976f490eff9244fc57ac5a2f70e2"
         },
         "passed": true
       },

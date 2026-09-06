@@ -29,12 +29,29 @@ module PulseProof
         PlanVerifier.verify!(proof, @fallback_provider) if planned
       end
       validate_report
+      validate_capacity_explanation
       validate_pii
       raise InvariantError, errors.join("\n") if errors.any?
       true
     end
 
     private
+
+    def validate_capacity_explanation
+      marker = @report.dig("audit", "capacity_explanation_schema")
+      return if marker.nil? && !@report.key?("capacity_explanation")
+
+      unless marker == 1 && @report["capacity_explanation"].is_a?(Hash)
+        errors << "capacity explanation is missing or has an unsupported schema"
+        return
+      end
+      expected = CapacityExplanation.new(queue: @queue, decisions: @decisions,
+        providers_document: @providers_document, fallback_provider: @fallback_provider,
+        snapshot_unchanged: !@report.fetch("event_log").any? { |event| event["type"] == "provider_rules_updated" }).build
+      unless Canonical.digest(expected) == Canonical.digest(@report["capacity_explanation"])
+        errors << "capacity explanation differs from original inputs, decisions or scope"
+      end
+    end
 
     def validate_coverage
       unless @decisions.all? { |row| row.is_a?(Hash) }

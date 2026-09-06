@@ -4,6 +4,14 @@ PulseProof is a Ruby online payout-routing engine and simulator built for the Ha
 
 It does not optimize a known batch. Every operation is routed sequentially from the state available at that moment. Hard constraints form a safety gate; soft count and volume goals are reconciled by bounded deficit controllers; capacity is reserved before a provider request; timeout remains pending until a status event resolves it; late cancellation releases capacity and produces a compensating event rather than rewriting history.
 
+## Submitted routing and its limits
+
+The submitted policy is still `config/balanced.json`. On the issued 90-operation queue it selects vipay / payflow / quickpay / fallback **29 / 9 / 48 / 4** in the explicitly simulated `approve` mode. The report's external-provider count L1 is **61.11 percentage points**; this is neither a success rate nor a proved minimum.
+
+The required report now exposes `capacity_explanation` immediately after distribution: initial daily headroom, actual allocation, separate provider count ceilings and the cheapest-operation sums that justify the daily-budget ceiling. This is post-run analysis, never input to the online router. Frozen-snapshot ceilings are withheld for changed rules, failures or pending outcomes. The validator recomputes the section from the original inputs and decisions.
+
+Payflow starts with only 100,000 rubles available, of which the run allocates 99,400. Its individual count ceiling is 18, not the 31.5 operations implied by its 35% target. Vipay's individual ceiling is 31; the run assigns 29. These separate bounds do not establish a joint optimum. A retrospective quality-first comparison finds a better count deviation on this queue, but does not replace the submitted policy. See [the final review and reproduction commands](docs/FINAL_REVIEW.md).
+
 ## Challenge the decision before looking at the pitch
 
 The experimental planner answers three testable questions: can a forbidden provider be made eligible by changing weights (**no**); what single weight change makes a legal alternative win; and which modeled consequences explain the original choice. `challenge` calculates and verifies a switching boundary on a saved snapshot. It does not deploy a policy or send a payout.
@@ -48,7 +56,7 @@ The fast gate verifies that code, configuration, tests, commit and Ruby version 
 - `routing_decisions_test.json`
 - `routing_report_test.json`
 
-If the receipt is missing or anything in the source tree changed, `rake stopcode` stops. Run the conservative full path instead (or remove the organizer queue, commit/push the intended source, and arm it again):
+If the receipt is missing or anything in the source tree changed, `rake stopcode` stops. With the organizer queue already present, keep that input in place and run the conservative full path instead. The final analytical additions use this full path; an older receipt does not certify the new source:
 
 ```bash
 rake submit
@@ -155,9 +163,9 @@ Then run:
 rake release
 ```
 
-The gate runs the Ruby test suite, generates both submission files, checks them with the strict validator and the official public validator, scans outputs for all sensitive queue values, verifies the Ruby-majority threshold, executes the 31-case requirements evidence, regenerates the demo trace, lints the interface and creates a production build.
+The gate runs the Ruby test suite, generates both submission files, checks them with the strict validator, scans outputs for queue phone values, verifies the Ruby-majority threshold, executes the 31-case requirements evidence, regenerates the demo trace, lints the interface and creates a production build. The official validator applies to the public sample only: when the organizer queue is selected, it is skipped for that queue and exercised separately by a public-sample subprocess regression. The final artifact audit also checks every string value in organizer payout requisites, not only phones.
 
-Last verified test suite: **209 tests, 6433 assertions, no failures.** It includes a subprocess regression requiring the verified fast generator and standard generator to produce byte-identical decisions and reports, plus 12 report regressions for absent/explicit volume targets and recorded unavailability/recovery. The complete release gate is rerun after every delivery change; its additional checks cover executable requirements evidence 31/31, official public balanced validation 29/29, authored Ruby share 75.53%, privacy, lint and production build. The locale regression suite also runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. These are local checks, not evidence of hidden-test success.
+Last verified test suite: **230 tests, 6597 assertions, no failures**, from `LANG=C LC_ALL=C rake release submit`. It includes byte-identical fast/standard generation, 12 volume/recovery report regressions, 12 individual-capacity bound cases, 6 report-integration checks (including missing snapshot time and tamper detection), and 3 isolated policy-comparison checks. The complete release gate also passed executable requirements evidence 31/31, strict validation of all 90 organizer-queue decisions, official public balanced validation 29/29 in a separate subprocess, authored Ruby share 76.07%, privacy, lint and production build. The locale regression suite runs fresh CLI subprocesses with unset, C, POSIX and UTF-8 locale variables. The 90 decision records remain byte-identical to the original submitted balanced run; the report adds capacity explanation, its verification marker and one analytical recommendation. These are local checks, not evidence of hidden-validator success.
 
 The normal suite also starts the CLI tests in fresh subprocesses under unset, C, POSIX and UTF-8 locales. UTF-8 file/pipe decoding is explicit in those tests; `Encoding.default_external` is not globally overridden. Reproduce the strict locale check with:
 
